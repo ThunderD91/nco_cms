@@ -37,8 +37,12 @@
                                 if(isset($_POST['login'])){
                                     $email=$_POST['email'];
                                     $login=$userClass->login($_POST['email'],$_POST['password']);
-                                    if($login)
+                                    if($login) {
+                                        $uid=$userClass->getUserId();
+                                        $Event->createEvent('info','Loggede in',100,$uid);
                                         header('location: index.php');
+                                        exit;
+                                    }
                                 }
                             ?>
                             <div class="progress hidden" id="login-progress">
