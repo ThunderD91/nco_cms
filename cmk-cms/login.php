@@ -39,7 +39,7 @@
                                     $login=$userClass->login($_POST['email'],$_POST['password']);
                                     if($login) {
                                         $uid=$userClass->getUserId();
-                                        $Event->createEvent('info','Loggede in',100,$uid);
+                                        $Event->createEvent('info','Loggede in',10,$uid);
                                         header('location: index.php');
                                         exit;
                                     }

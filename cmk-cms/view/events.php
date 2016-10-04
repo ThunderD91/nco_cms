@@ -23,7 +23,7 @@ if((isset($_GET['search']) && empty($_GET['search']) || (isset($_GET['clear']) &
 // Defaults
 $page_length = isset($_SESSION[$view_file.'conf']['page_length'])	? intval($_SESSION[$view_file.'conf']['page_length'])	: DEFAULT_PAGE_LENGTH;
 $page_no 	 = isset($_SESSION[$view_file.'conf']['page_no'])		? $_SESSION[$view_file.'conf']['page_no']	: 1;
-$sort_by	 = isset($_SESSION[$view_file.'conf']['sort_by'])		? $_SESSION[$view_file.'conf']['sort_by']	: 'created';
+$sort_by	 = isset($_SESSION[$view_file.'conf']['sort_by'])		? $_SESSION[$view_file.'conf']['sort_by']	: 'timestamp';
 $order 		 = isset($_SESSION[$view_file.'conf']['order'])		? $_SESSION[$view_file.'conf']['order']	: 'desc';
 $search 	 = isset($_SESSION[$view_file.'conf']['search'])		? $_SESSION[$view_file.'conf']['search']	: '';
 
@@ -39,7 +39,7 @@ else
 	$new_order	= 'desc';
 	$icon		= $icons['sort-asc'];
 }
-$sorting="event_time desc";
+
 switch($sort_by)
 {
 	case 'timestamp':
@@ -140,7 +140,7 @@ switch($sort_by)
 				<?php
 					$offset=$page_length*($page_no-1);
 					$sql_options=array(
-						'fields'=>'DATE_FORMAT(event_time,"%a, %e. %b %Y kl. %H:%i") AS event_created,event_description,event_type_name,event_type_class,role_name,user_name',
+						'fields'=>'DATE_FORMAT(event_time,"'.$timeStamp.'") AS event_created,event_description,event_type_name,event_type_class,role_name,user_name',
 						'order'=> $sorting,
 						'limit'=> $page_length . " OFFSET " . $offset,
 						'join'=>array(
@@ -149,12 +149,10 @@ switch($sort_by)
 							array('type'=>'INNER','table'=>'roles','cond'=>'fk_role_id=role_id')
 						)
 					);
-					if($search || $user['user_id']!=1) {
-						$ar=[];
-						if($search) $ar[] = "(event_description like '%$search%' OR user_name like '%$search%')";
-						if($user['user_id']!=1) $ar[] = "user_id!=1";
-						$sql_options['cond']=join(' AND ',$ar);
-					}
+					$ar=[];
+					$ar[] ="event_access_level_required<=".$user['role_access_level']." AND role_access_level<=".$user['role_access_level'];
+					if($search) $ar[] = "(event_description like '%$search%' OR user_name like '%$search%')";
+					$sql_options['cond']=join(' AND ',$ar);
 
 					$events=$DB->find('events',$sql_options);
 

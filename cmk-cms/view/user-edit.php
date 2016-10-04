@@ -36,11 +36,19 @@
 			<?php
 			if(isset($_GET['id']) && !empty($_GET['id'])){
 				$id=intval($_GET['id']);
-				$getUser=$DB->find('users',array('cond'=>"user_id=$id"));
+				$getUser=$DB->find('users',array('cond'=>"user_id=$id",
+					'join'=>array(
+						array('type'=>'INNER','table'=>'roles','cond'=>'fk_role_id=role_id')
+					)
+				));
 				if(count($getUser)>0){
 					$name=$getUser[0]['user_name'];
 					$email=$getUser[0]['user_email'];
 					$role=$getUser[0]['fk_role_id'];
+
+					if($user['role_access_level']<=$getUser[0]['role_access_level'] && $getUser[0]['user_id'] != $user['user_id'] && $user['role_access_level']!=1000){
+						header('location:index.php?page=users');
+					}
 				}else{
 					alert('warning',sprintf(NO_ITEM_FOUND, USER) . ' <a href="index.php?page=users" data-page="users">' . RETURN_TO_OVERVIEW . '</a>');
 				}

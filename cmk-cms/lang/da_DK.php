@@ -94,4 +94,6 @@ define('UPDATE_FAILED',	        'Ups! noget gik galt under opdatering af %s');
 define('CANT_TOUCH_SUPER_ROLE',	'Ikke muligt at ændre %s rolle!');
 define('CANT_ASSIGN_SUPER_ROLE','Ikke muligt at sætte rollen til %s');
 define('CANT_DELETE_SUPER',     'Ikke muligt at slette %s');
+define('CANT_DELETE_SELF',      'Ikke muligt at slette dig selv');
 define('NO_ITEM_FOUND',	        'Der blev ikke fundet nogen %s');
+define('FORMATTED_TIME',        '%a, %e. %b %Y kl. %H:%i');

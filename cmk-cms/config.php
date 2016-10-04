@@ -29,6 +29,8 @@ require $include_path . 'functions.php';
 if(!isset($no_variable))
     isAdminUser();
 
+$timeStamp=FORMATTED_TIME;
+
 // Array with icons used in CMS
 $icons =
 [

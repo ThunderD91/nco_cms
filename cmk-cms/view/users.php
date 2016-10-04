@@ -76,13 +76,24 @@ switch($sort_by)
 if(isset($_GET['delete']) && isset($_GET['id']) && !empty($_GET['id'])){
 	$delete_id=$_GET['id'];
 	if($delete_id!=1) {
-		$resultDel=$DB->findQuery("select user_name from users where user_id=$delete_id");
-		$query = "DELETE FROM users WHERE user_id=$delete_id";
-		$DB->execute($query);
-		if ($DB->last_err)
-			query_error($this->conn->error, $query, __LINE__, __FILE__);
-		else {
-			$Event->createEvent('delete', 'af brugeren <a href="index.php?page=user-edit&id=' . $delete_id . '" data-page="user-edit" data-params="id=' . $delete_id . '">' . $resultDel[0]['user_name'] . '</a>', 100, $user['user_id']);
+		if($delete_id != $user['user_id']) {
+			$resultDel = $DB->find('users', array('cond' => "user_id=$delete_id", 'fields' => 'user_name,role_access_level',
+				'join'=>array(
+					array('type'=>'INNER','table'=>'roles','cond'=>'fk_role_id=role_id')
+				)
+			));
+
+			if ($DB->row_totals > 0 && ($resultDel[0]['role_access_level']<$user['role_access_level']  || $user['role_access_level']==1000)) {
+				$query = "DELETE FROM users WHERE user_id=$delete_id";
+				$DB->execute($query);
+				if ($DB->last_err)
+					query_error($this->conn->error, $query, __LINE__, __FILE__);
+				else {
+					$Event->createEvent('delete', 'af brugeren <a href="index.php?page=user-edit&id=' . $delete_id . '" data-page="user-edit" data-params="id=' . $delete_id . '">' . $resultDel[0]['user_name'] . '</a>', 100, $user['user_id']);
+				}
+			}
+		}else{
+			alert('warning',CANT_DELETE_SELF);
 		}
 	}else
 		alert('warning',sprintf(CANT_DELETE_SUPER, SUPER_ADMINISTRATOR));
@@ -167,18 +178,17 @@ if(isset($_GET['delete']) && isset($_GET['id']) && !empty($_GET['id'])){
 				<?php
 					$offset=$page_length*($page_no-1);
 					$sql_options=array(
-						'fields'=>'user_id,user_status,DATE_FORMAT(user_created,"%a, %e. %b %Y kl. %H:%i") AS created,user_name,user_email,role_name',
+						'fields'=>'user_id,user_status,DATE_FORMAT(user_created,"'.$timeStamp.'") AS created,user_name,user_email,role_name,role_access_level',
 						'order'=> $sorting,
 						'limit'=> $page_length . " OFFSET " . $offset,
 						'join'=>array(
 							array('type'=>'INNER','table'=>'roles','cond'=>'fk_role_id=role_id'))
 					);
-					if($search || $user['user_id']!=1) {
-						$ar=[];
-						if($search) $ar[] = "(user_name like '%$search%' OR user_email like '%$search%')";
-						if($user['user_id']!=1) $ar[] = "user_id!=1";
-						$sql_options['cond']=join(' AND ',$ar);
-					}
+					$ar=[];
+					$ar[] ="role_access_level<=".$user['role_access_level'];
+					if($search) $ar[] = "(user_name like '%$search%' OR user_email like '%$search%')";
+					if($user['user_id']!=1) $ar[] = "user_id!=1";
+					$sql_options['cond']=join(' AND ',$ar);
 
 					$result=$DB->find('users',$sql_options);
 
@@ -194,18 +204,26 @@ if(isset($_GET['delete']) && isset($_GET['id']) && !empty($_GET['id'])){
 
 					<!-- TOGGLE TIL AKTIVER/DEAKTIVER ELEMENT -->
 					<td class="toggle">
+						<?php if($v['user_id'] != $user['user_id'] && ($v['role_access_level']<$user['role_access_level']  || $user['role_access_level']==1000)){?>
 						<input type="checkbox" class="toggle-checkbox" id="<?php echo $v['user_id']; ?>" data-type="<?php echo $view_file; ?>" <?php echo $v['user_status'] ? "checked" : ""; ?>>
+						<?php }?>
 					</td>
 
 					<!-- REDIGER LINK -->
 					<td class="icon">
+						<?php if($v['user_id'] == $user['user_id'] || $v['role_access_level']<$user['role_access_level']  || $user['role_access_level']==1000){?>
 						<a class="<?php echo $buttons['edit'] ?>" href="index.php?page=user-edit&id=<?php echo $v['user_id']; ?>" data-page="user-edit" data-params="id=<?php echo $v['user_id']; ?>" data-type="<?php echo $view_file; ?>" title="<?php echo EDIT_ITEM ?>"><?php echo $icons['edit'] ?></a>
+						<?php }?>
 					</td>
 
 					<!-- SLET LINK -->
+
 					<td class="icon">
+						<?php if($v['user_id'] != $user['user_id'] && ($v['role_access_level']<$user['role_access_level']  || $user['role_access_level']==1000)){?>
 						<a class="<?php echo $buttons['delete'] ?>" <?php if($v['user_id']!=1){?>data-toggle="confirmation" href="index.php?page=<?php echo $view_file; ?>&id=<?php echo $v['user_id']; ?>&delete" data-page="<?php echo $view_file; ?>" data-params="id=<?php echo $v['user_id']; ?>&delete" title="<?php echo DELETE_ITEM ?>" <?php } echo $v['user_id']== 1 ? "disabled" : "";?>><?php echo $icons['delete'] ?></a>
+						<?php }?>
 					</td>
+
 				</tr>
 				<?php }?>
 				</tbody>

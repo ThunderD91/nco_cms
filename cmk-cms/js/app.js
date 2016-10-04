@@ -217,6 +217,7 @@ $(function() {
 			url: "includes/setStatus.php",
 			data: {'id':id,'table':table,'state':state},
 			success: function(data){
+				//alert(data);
 				if(data==='0')
 					$(self).bootstrapSwitch('state',!state,'skip');
 			}

@@ -40,7 +40,7 @@
 </div>
 <?php
 	$options=array('order'=>'role_id desc');
-	if($id!==1) $options['cond']='role_id!=1';
+	if($id!==1 && $user['role_id']!=1) $options['cond']='role_id!=1';
 	$roles = $DB->find('roles',$options);
 
 ?>

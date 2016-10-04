@@ -11,9 +11,9 @@ class User extends DB{
     function __construct(){
         parent::__construct();
         if(isset($_SESSION[$this->user_key])) {
-            $this -> get_user_from_session();
+            $this->get_user_from_session();
         }else{
-            $this -> set_user_session();
+            $this->set_user_session();
         }
     }
     function getUser(){
@@ -102,9 +102,9 @@ class User extends DB{
         if(empty($post['name']) || empty($post['email']) || empty($post['role']) ||
             ($type=="add" && (empty($post['password']) || empty($post['confirm_password'])))){
             alert('warning',REQUIRED_FIELDS_EMPTY);
-        }else if($id == 1 && $post['role']!=1){
+        }else if($id == 1 && $post['role']!=1 && $this->user['role_access_level']!=1000){
             alert('warning',sprintf(CANT_TOUCH_SUPER_ROLE, SUPER_ADMINISTRATOR). ' <a href="index.php?page=users" data-page="users">' . RETURN_TO_OVERVIEW . '</a>');
-        }else if($post['role']==1){
+        }else if($post['role']==1 && $this->user['role_access_level']!=1000){
             alert('warning',sprintf(CANT_ASSIGN_SUPER_ROLE, SUPER_ADMINISTRATOR). ' <a href="index.php?page=users" data-page="users">' . RETURN_TO_OVERVIEW . '</a>');
         }else{
 
