@@ -4,6 +4,7 @@ class User extends DB{
     private $acl;
 
     public $timeout = 1800;
+    //public $timeout = 10;
     /* change for new projects */
     private $user_key="96b25b05-eb95-4ddb-bc27-d28e84045c1f";
     private $acl_key ="91b8c397-61ad-48e2-b5e5-6de75f80c06c";
@@ -85,7 +86,7 @@ class User extends DB{
             $name=$this->esc($post['name']);
             $role=$this->esc($post['role']);
             $hash=!empty($pw1) ? password_hash($pw1,PASSWORD_DEFAULT) : false;
-            $this->execute("UPDATE users SET user_name='$name',user_email='$email',fk_role_id=$role".($hash ? ",user_password='".$hash."'" : "")." WHERE user_id=$id;");
+            $this->execute("UPDATE users SET user_name='$name',user_email='$email'".($id!=$this->user['user_id'] ? ",fk_role_id=$role" : "").($hash ? ",user_password='".$hash."'" : "")." WHERE user_id=$id;");
             if(!$this->last_err) {
                 $result['success'] = true;
                 alert('success', ITEM_UPDATED . ' <a href="index.php?page=users" data-page="users">' . RETURN_TO_OVERVIEW . '</a>');
@@ -98,6 +99,7 @@ class User extends DB{
     private function validate($post,$type){
         $valid=false;
         $id="";
+
         if($type=="edit") $id=$this->esc($post['userid']);
         if(empty($post['name']) || empty($post['email']) || empty($post['role']) ||
             ($type=="add" && (empty($post['password']) || empty($post['confirm_password'])))){
@@ -107,18 +109,27 @@ class User extends DB{
         }else if($post['role']==1 && $this->user['role_access_level']!=1000){
             alert('warning',sprintf(CANT_ASSIGN_SUPER_ROLE, SUPER_ADMINISTRATOR). ' <a href="index.php?page=users" data-page="users">' . RETURN_TO_OVERVIEW . '</a>');
         }else{
+            $role_access=$this->findQuery("select role_access_level from roles where role_id=".$post['role']);
+            $noneAllowed=false;
+            if(count($role_access) > 0){
+                if($role_access[0]['role_access_level']<$this->user['role_access_level'] || $this->user['user_id']==$id || $this->user['role_access_level']==1000) {
+                    $email = $this->esc($post['email']);
+                    $cond = "user_email='$email'" . ($type == "edit" ? " AND user_id!=$id" : "");
+                    $this->find('users', array('cond' => $cond));
+                    if ($this->row_totals > 0) {
+                        alert('warning', EMAIL_NOT_AVAILABLE);
+                    } else {
+                        if ($post['password'] != $post['confirm_password']) {
+                            alert('warning', PASSWORD_MISMATCH);
+                        } else {
+                            return true;
+                        }
+                    }
+                }else $noneAllowed=true;
+            }else $noneAllowed=true;
 
-            $email=$this->esc($post['email']);
-            $cond = "user_email='$email'" . ($type=="edit" ? " AND user_id!=$id" : "");
-            $this->find('users',array('cond'=>$cond));
-            if($this->row_totals>0){
-                alert('warning',EMAIL_NOT_AVAILABLE);
-            }else{
-                if($post['password'] != $post['confirm_password']){
-                    alert('warning',PASSWORD_MISMATCH);
-                }else{
-                    return true;
-                }
+            if($noneAllowed){
+                alert('warning',MISSING_AUTH . ' <a href="index.php?page=users" data-page="users">' . RETURN_TO_OVERVIEW . '</a>');
             }
         }
         return $valid;

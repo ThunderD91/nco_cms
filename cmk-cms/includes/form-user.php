@@ -40,7 +40,11 @@
 </div>
 <?php
 	$options=array('order'=>'role_id desc');
-	if($id!==1 && $user['role_id']!=1) $options['cond']='role_id!=1';
+	$ar=[];
+	if($user['role_access_level']!=1000)$ar[]="role_access_level<".$user['role_access_level'];
+	if($id!==1 && $user['role_id']!=1) $ar[]='role_id!=1';
+	if(count($ar) > 0)$options['cond']=join(' AND ',$ar);
+	if($id==$user['user_id']) $options['cond']="role_id=".$user['role_id'];
 	$roles = $DB->find('roles',$options);
 
 ?>

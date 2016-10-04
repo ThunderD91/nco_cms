@@ -15,6 +15,7 @@
 				// Loop through the Array $view_files, defined in config.php and save the Array keys as $file and the Array values as $details
 				foreach($view_files as $file => $details)
 				{
+					if($details['acl'] > $user['role_access_level']) continue;
 					// If nav in file details is set to true, show file in navigation
 					if ($details['nav'] == true)
 					{

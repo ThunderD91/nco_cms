@@ -26,7 +26,7 @@ $Event=new Events();
 
 require 'lang/da_DK.php';
 require $include_path . 'functions.php';
-if(!isset($no_variable))
+if($loggedIn)
     isAdminUser();
 
 $timeStamp=FORMATTED_TIME;
@@ -283,3 +283,6 @@ $view_files =
         'acl'   => 100
 	]
 ];
+
+if(isset($_GET['page']))
+    pageAccess($_GET['page']);

@@ -204,7 +204,7 @@ if(isset($_GET['delete']) && isset($_GET['id']) && !empty($_GET['id'])){
 
 					<!-- TOGGLE TIL AKTIVER/DEAKTIVER ELEMENT -->
 					<td class="toggle">
-						<?php if($v['user_id'] != $user['user_id'] && ($v['role_access_level']<$user['role_access_level']  || $user['role_access_level']==1000)){?>
+						<?php if(($v['user_id'] != $user['user_id'] && ($v['role_access_level']<$user['role_access_level'])  || $user['role_access_level']==1000)){?>
 						<input type="checkbox" class="toggle-checkbox" id="<?php echo $v['user_id']; ?>" data-type="<?php echo $view_file; ?>" <?php echo $v['user_status'] ? "checked" : ""; ?>>
 						<?php }?>
 					</td>
@@ -219,7 +219,7 @@ if(isset($_GET['delete']) && isset($_GET['id']) && !empty($_GET['id'])){
 					<!-- SLET LINK -->
 
 					<td class="icon">
-						<?php if($v['user_id'] != $user['user_id'] && ($v['role_access_level']<$user['role_access_level']  || $user['role_access_level']==1000)){?>
+						<?php if(($v['user_id'] != $user['user_id'] && ($v['role_access_level']<$user['role_access_level'])  || $user['role_access_level']==1000)){?>
 						<a class="<?php echo $buttons['delete'] ?>" <?php if($v['user_id']!=1){?>data-toggle="confirmation" href="index.php?page=<?php echo $view_file; ?>&id=<?php echo $v['user_id']; ?>&delete" data-page="<?php echo $view_file; ?>" data-params="id=<?php echo $v['user_id']; ?>&delete" title="<?php echo DELETE_ITEM ?>" <?php } echo $v['user_id']== 1 ? "disabled" : "";?>><?php echo $icons['delete'] ?></a>
 						<?php }?>
 					</td>

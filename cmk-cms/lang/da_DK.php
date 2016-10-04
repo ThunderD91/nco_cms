@@ -90,6 +90,7 @@ define('ACCOUNT_NOT_ACTIVE',	'Brugeren er ikke aktiv');
 define('SQL_ERROR',	            'Der skete en fejl, prøv venligst igen. Kontakt os hvis problemet fortsætter');
 define('CONNECT_ERROR',	        'Ingen forbindelse til databasen');
 define('NO_ITEM_SELECTED',	    'Der er ikke valgt nogen %s');
+define('MISSING_AUTH',	        'Mangler rettigheder');
 define('UPDATE_FAILED',	        'Ups! noget gik galt under opdatering af %s');
 define('CANT_TOUCH_SUPER_ROLE',	'Ikke muligt at ændre %s rolle!');
 define('CANT_ASSIGN_SUPER_ROLE','Ikke muligt at sætte rollen til %s');

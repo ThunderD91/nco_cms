@@ -4,6 +4,7 @@
 		require '../config.php';
 		$include_path = '../' . $include_path;
 	}
+
 	$name = $email = $id = $password_required ='';
 	$role = 4;
 
@@ -34,6 +35,9 @@
 
 
 			<?php
+			$showForm=true;
+			if(!isset($_GET['id']))
+				$_GET['id']=$user['user_id'];
 			if(isset($_GET['id']) && !empty($_GET['id'])){
 				$id=intval($_GET['id']);
 				$getUser=$DB->find('users',array('cond'=>"user_id=$id",
@@ -42,12 +46,12 @@
 					)
 				));
 				if(count($getUser)>0){
-					$name=$getUser[0]['user_name'];
-					$email=$getUser[0]['user_email'];
-					$role=$getUser[0]['fk_role_id'];
-
 					if($user['role_access_level']<=$getUser[0]['role_access_level'] && $getUser[0]['user_id'] != $user['user_id'] && $user['role_access_level']!=1000){
-						header('location:index.php?page=users');
+						$showForm=false;
+					}else {
+						$name = $getUser[0]['user_name'];
+						$email = $getUser[0]['user_email'];
+						$role = $getUser[0]['fk_role_id'];
 					}
 				}else{
 					alert('warning',sprintf(NO_ITEM_FOUND, USER) . ' <a href="index.php?page=users" data-page="users">' . RETURN_TO_OVERVIEW . '</a>');
@@ -63,7 +67,15 @@
 				if($result['success'])
 					$Event->createEvent('update','af brugeren <a href="index.php?page=user-edit&id='.$id.'" data-page="user-edit" data-params="id='.$id.'">'.$name.'</a>',100,$user['user_id']);
 			}
-			include $include_path . 'form-user.php' ?>
+			if($showForm)
+				include $include_path . 'form-user.php';
+			else
+				alert('warning',MISSING_AUTH . ' <a href="index.php?page=users" data-page="users">' . RETURN_TO_OVERVIEW . '</a>');
+			?>
+				<!--<script>
+					location.href=<?php //echo $root;?>"index.php?page=users";
+				</script>-->
+
 			<input type="hidden" id="userid" name="userid" value="<?php echo $id;?>">
 		</form>
 	</div>

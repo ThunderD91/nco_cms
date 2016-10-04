@@ -205,23 +205,22 @@ $(function() {
 			$('#2 #post').attr('required', false);
 		}
 	});
-
+	$(document.body).delegate('.toggle-checkbox', 'switchChange.bootstrapSwitch', function(event,state) {
+		toggleStatus(this,state);
+	});
 	// toggle ajax
-	$('.toggle-checkbox').on('switchChange.bootstrapSwitch',function(event,state){
-		var id=this.id;
-		var table=$(this).attr('data-type');
-		var toggle=state ? 1 : 0;
-		var self=this;
+	function toggleStatus(self,state){
+		var id=self.id;
+		var table=$(self).attr('data-type');
 		$.ajax({
 			type: "POST",
 			url: "includes/setStatus.php",
 			data: {'id':id,'table':table,'state':state},
 			success: function(data){
-				//alert(data);
 				if(data==='0')
 					$(self).bootstrapSwitch('state',!state,'skip');
 			}
 
 		});
-	});
+	}
 });

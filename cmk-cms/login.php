@@ -1,7 +1,9 @@
 <?php
     ob_start();
-    $no_variable=true;
     require 'config.php';
+    if($loggedIn){
+        pageAccess(false,'index',true);
+    }
 ?>
 <!DOCTYPE html>
 <html>
@@ -40,7 +42,7 @@
                                     if($login) {
                                         $uid=$userClass->getUserId();
                                         $Event->createEvent('info','Loggede in',10,$uid);
-                                        header('location: index.php');
+                                        pageAccess(false,'index',true);
                                         exit;
                                     }
                                 }

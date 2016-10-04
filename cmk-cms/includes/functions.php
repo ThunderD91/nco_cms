@@ -13,25 +13,36 @@ function show_developer_info()
 function fingerPrint(){
 	return hash('sha256',$_SERVER['HTTP_USER_AGENT'] . 'aUb-eÆaÅ!dr0%9@ø');
 }
+function pageAccess($view,$page="index",$skip=false){
+	global $user;
+	global $view_files;
+	global $root;
+	if(($view && $view_files[$view]['acl'] > $user['role_access_level']) || $skip){
+		?>
+		<script type="text/javascript">
+			location.href="<?php echo $root."cmk-cms/".$page;?>.php";
+		</script>
+		<?php
+	}
+}
 function isAdminUser(){
 	global $loggedIn;
 	global $user;
 	global $userClass;
-	global $root;
 
 	if(!$loggedIn || $user['role_access_level']<10){
-		header("location: ".$root."cmk-cms/login.php"); // eller forside
+		pageAccess(false,'login',true);
 		exit;
 	}
 	if($user['fingerPrint']!=fingerPrint()){
 		$userClass->logout();
-		header("location: ".$root."cmk-cms/login.php");
+		pageAccess(false,'login',true);
 		exit;
 	}
 	if(!DEVELOPER_STATUS) {
 		if (isset($user['last_activity']) && $user['last_activity'] + $userClass->timeout < time()) {
 			$userClass->logout();
-			header("location: " . $root . "cmk-cms/login.php");
+			pageAccess(false,'login',true);
 			exit;
 		}
 		$userClass->setActivity();
