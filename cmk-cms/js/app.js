@@ -63,6 +63,8 @@ $(function() {
 				};
 			}
 		});
+
+
 	}
 
 	load_plugins();
@@ -206,12 +208,12 @@ $(function() {
 		}
 	});
 	$(document.body).delegate('.toggle-checkbox', 'switchChange.bootstrapSwitch', function(event,state) {
-		toggleStatus(this,state);
+		var id=this.id;
+		var table=$(this).attr('data-type');
+		toggleStatus(this,id,table,state);
 	});
 	// toggle ajax
-	function toggleStatus(self,state){
-		var id=self.id;
-		var table=$(self).attr('data-type');
+	function toggleStatus(self,id,table,state){
 		$.ajax({
 			type: "POST",
 			url: "includes/setStatus.php",

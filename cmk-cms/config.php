@@ -14,6 +14,7 @@ if(DEVELOPER_STATUS){
 }
 
 include $include_path.'classes/db_conf.php';
+include $include_path.'classes/data_handler.php';
 include $include_path.'classes/login_class.php';
 include $include_path.'classes/events.php';
 
@@ -22,6 +23,7 @@ $userClass=new User();
 $user=$userClass->getUser();
 $loggedIn=(count($user) > 0 ? true : false);
 $Event=new Events();
+$dataHandle=new DataHandler();
 
 
 require 'lang/da_DK.php';
@@ -284,5 +286,5 @@ $view_files =
 	]
 ];
 
-if(isset($_GET['page']))
+if(isset($_GET['page']) && isset($view_files[$_GET['page']]))
     pageAccess($_GET['page']);

@@ -98,3 +98,4 @@ define('CANT_DELETE_SUPER',     'Ikke muligt at slette %s');
 define('CANT_DELETE_SELF',      'Ikke muligt at slette dig selv');
 define('NO_ITEM_FOUND',	        'Der blev ikke fundet nogen %s');
 define('FORMATTED_TIME',        '%a, %e. %b %Y kl. %H:%i');
+define('PROTECTED_PAGE',        'Kan ikke slette en beskyttet side');

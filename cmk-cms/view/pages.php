@@ -1,8 +1,91 @@
 <?php
-if ( !isset($view_files) )
-{
-	require '../config.php';
-}
+	if ( !isset($view_files) )
+	{
+		require '../config.php';
+		$view_file='pages';
+	}
+
+	if(!isset($_SESSION[$view_file.'conf']))
+		$_SESSION[$view_file.'conf']=[];
+	if(isset($_GET['page-length']) && $_GET['page-length'] >= min($show_pages_length) && $_GET['page-length'] <= max($show_pages_length)){
+		$_SESSION[$view_file.'conf']['page_length']=$DB->esc($_GET['page-length']);
+		unset($_SESSION[$view_file.'conf']['page_no']);
+	}
+	if(isset($_GET['page-no'])) $page_no =$_SESSION[$view_file.'conf']['page_no']=$_GET['page-no'];
+	if(isset($_GET['sort-by'])) $_SESSION[$view_file.'conf']['sort_by']=$_GET['sort-by'];
+	if(isset($_GET['order'])) $_SESSION[$view_file.'conf']['order']=$DB->esc($_GET['order']);
+
+	if(isset($_GET['toggle']) && isset($_GET['id'])){
+		$cid=$DB->esc($_GET['id']);
+		if($cid != 1) {
+			$tog = $_GET['toggle'] ? 1 : 0;
+			$DB->execute("UPDATE users SET user_status=$tog WHERE user_id=$cid");
+		}
+	}
+
+	if(isset($_GET['search']) && !empty($_GET['search'])){
+		$_SESSION[$view_file.'conf']['search']=$DB->esc($_GET['search']);
+		unset($_SESSION[$view_file.'conf']['page_no']);
+	}
+	if((isset($_GET['search']) && empty($_GET['search']) || (isset($_GET['clear']) && $_GET['clear']=="search"))) unset($_SESSION[$view_file.'conf']['search']);
+
+	// Defaults
+	$page_length = isset($_SESSION[$view_file.'conf']['page_length'])	? intval($_SESSION[$view_file.'conf']['page_length'])	: DEFAULT_PAGE_LENGTH;
+	$page_no 	 = isset($_SESSION[$view_file.'conf']['page_no'])		? $_SESSION[$view_file.'conf']['page_no']	: 1;
+	$sort_by	 = isset($_SESSION[$view_file.'conf']['sort_by'])		? $_SESSION[$view_file.'conf']['sort_by']	: 'title';
+	$order 		 = isset($_SESSION[$view_file.'conf']['order'])		? $_SESSION[$view_file.'conf']['order']	: 'asc';
+	$search 	 = isset($_SESSION[$view_file.'conf']['search'])		? $_SESSION[$view_file.'conf']['search']	: '';
+
+	$icon_title		= $icon_url = $icon_locked = $icon_status = '';
+
+	if ($order  == 'desc')
+	{
+		$new_order	= 'asc';
+		$icon		= $icons['sort-desc'];
+	}
+	else
+	{
+		$new_order	= 'desc';
+		$icon		= $icons['sort-asc'];
+	}
+
+	switch($sort_by)
+	{
+		case 'title':
+			$icon_title	= $icon;
+			$sorting="page_title ".$order;
+			break;
+		case 'url':
+			$icon_url		= $icon;
+			$sorting="page_url_key ".$order;
+			break;
+		case 'locked':
+			$icon_locked		= $icon;
+			$sorting="page_protected ".$order;
+			break;
+		case 'status':
+			$icon_status	= $icon;
+			$sorting="page_status ".$order;
+			break;
+	}
+
+	if(isset($_GET['delete']) && isset($_GET['id']) && !empty($_GET['id'])){
+		$delete_id=$_GET['id'];
+		$resultDel = $DB->find('pages',array('cond'=>"page_id=$delete_id"));
+		if ($DB->row_totals > 0) {
+			if($resultDel[0]['page_protected']){
+				alert('warning',PROTECTED_PAGE);
+			}else {
+				$query = "DELETE FROM pages WHERE page_id=$delete_id";
+				$DB->execute($query);
+				if ($DB->last_err)
+					query_error($this->conn->error, $query, __LINE__, __FILE__);
+				else {
+					$Event->createEvent('delete', 'af side ' . $resultDel[0]['page_title'], 100, $user['user_id']);
+				}
+			}
+		}
+	}
 ?>
 
 <div class="page-title">
@@ -10,7 +93,7 @@ if ( !isset($view_files) )
 	<span class="title">
 		<?php
 		// Get icon and title from Array $files, defined in config.php
-		echo $view_files['pages']['icon'] . ' ' . $view_files['pages']['title']
+		echo $view_files[$view_file]['icon'] . ' ' . $view_files[$view_file]['title']
 		?>
 	</span>
 </div>
@@ -25,27 +108,30 @@ if ( !isset($view_files) )
 	<div class="card-body">
 		<div class="row">
 			<div class="col-md-4">
-				<form class="form-inline" data-page="pages">
-					<input type="hidden" name="page" value="pages">
+				<form class="form-inline" data-page="<?php echo $view_file; ?>">
+					<input type="hidden" name="page" value="<?php echo $view_file; ?>">
 					<label class="font-weight-300">
 						Vis
 						<select class="form-control input-sm" name="page-length" data-change="submit-form">
-							<option value="10">10</option>
-							<option value="25">25</option>
-							<option value="50">50</option>
-							<option value="100">100</option>
+							<?php foreach($show_pages_length as $k=>$v){?>
+								<option value="<?php echo $k?>" <?php echo $page_length == $k ? "selected" : "" ?>><?php echo $v?></option>
+							<?php }?>
 						</select>
 						elementer
 					</label>
 				</form>
 			</div>
 			<div class="col-md-5 col-md-offset-3 text-right">
-				<form data-page="pages">
-					<input type="hidden" name="page" value="pages">
+				<form data-page="<?php echo $view_file; ?>">
+					<input type="hidden" name="page" value="<?php echo $view_file; ?>">
 					<div class="input-group input-group-sm">
-						<input type="search" name="search" id="search" class="form-control" placeholder="<?php echo PLACEHOLDER_SEARCH ?>" value="">
+						<input type="search" name="search" id="search" class="form-control" placeholder="<?php echo PLACEHOLDER_SEARCH ?>" value="<?php if($search) echo  $search;?>">
 						<span class="input-group-btn">
 							<button class="btn btn-default" type="submit"><?php echo $icons['search'] ?></button>
+						</span>
+						<span class="input-group-btn"></span>
+						<span class="input-group-btn">
+							<button class="btn btn-default" type="submit" name="clear" id="clear" value="search">Clear</button>
 						</span>
 					</div>
 				</form>
@@ -57,17 +143,19 @@ if ( !isset($view_files) )
 				<thead>
 				<tr>
 					<th>
-						<a href="index.php?page=pages&sort-by=title&order=desc" data-page="pages" data-params="sort-by=title&order=desc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icons['sort-asc'] . TITLE ?></a>
+						<a href="index.php?page=<?php echo $view_file; ?>&sort-by=title&order=<?php echo $new_order;?>" data-page="<?php echo $view_file; ?>" data-params="sort-by=title&order=<?php echo $new_order;?>" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icon_title . TITLE ?></a>
 					</th>
 					<th>
-						<a href="index.php?page=pages&sort-by=url&order=desc" data-page="pages" data-params="sort-by=address&order=desc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo URL ?></a>
+						<a href="index.php?page=<?php echo $view_file; ?>&sort-by=url&order=<?php echo $new_order;?>" data-page="<?php echo $view_file; ?>" data-params="sort-by=url&order=<?php echo $new_order;?>" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icon_url . URL ?></a>
 					</th>
 					<th class="icon"></th>
+					<?php if($user['role_access_level']==1000){?>
+						<th class="toggle">
+							<a href="index.php?page=<?php echo $view_file; ?>&sort-by=locked&order=<?php echo $new_order;?>" data-page="<?php echo $view_file; ?>" data-params="sort-by=locked&order=<?php echo $new_order;?>" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icon_locked . LOCKED ?></a>
+						</th>
+					<?php }?>
 					<th class="toggle">
-						<a href="index.php?page=pages&sort-by=locked&order=desc" data-page="pages" data-params="sort-by=locked&order=desc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo LOCKED ?></a>
-					</th>
-					<th class="toggle">
-						<a href="index.php?page=pages&sort-by=status&order=desc" data-page="pages" data-params="sort-by=status&order=desc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo STATUS ?></a>
+						<a href="index.php?page=<?php echo $view_file; ?>&sort-by=status&order=<?php echo $new_order;?>" data-page="<?php echo $view_file; ?>" data-params="sort-by=status&order=<?php echo $new_order;?>" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icon_status . STATUS ?></a>
 					</th>
 					<th class="icon"></th>
 					<th class="icon"></th>
@@ -75,87 +163,72 @@ if ( !isset($view_files) )
 				</thead>
 
 				<tbody>
+				<?php
+					$offset=$page_length*($page_no-1);
+					$sql_options=array(
+						'order'=> $sorting,
+						'limit'=> $page_length . " OFFSET " . $offset
+					);
+					$ar=[];
+					if($search) $ar[] = "(page_title like '%$search%' OR page_url_key like '%$search%')";
+					if(count($ar) > 0) $sql_options['cond']=join(' AND ',$ar);
+
+					$result=$DB->find('pages',$sql_options);
+
+					$items_total = $DB->row_totals;
+					$items_current_total = $DB->row_totals_second;
+					foreach($result as $v){
+				?>
 				<tr>
-					<td>Blog</td>
-					<td><a href="../blog" target="_blank">/blog</a></td>
+					<td><?php echo $v['page_title'];?></td>
+					<td><a href="<?php echo $v['page_url_key'];?>" target="_blank"><?php echo $v['page_url_key'];?></a></td>
 
 					<!-- LINK TIL SIDEINDHOLD -->
 					<td class="icon">
-						<a href="index.php?page=page-content&page-id=1" title="<?php echo $view_files['page-content']['title'] ?>" data-page="page-content" data-params="id=1"><?php echo $view_files['page-content']['icon'] ?></a>
+						<a href="index.php?page=page-content&page-id=<?php echo $v['page_id'];?>" title="<?php echo $view_files['page-content']['title'] ?>" data-page="page-content" data-params="id=<?php echo $v['page_id'];?>"><?php echo $view_files['page-content']['icon'] ?></a>
 					</td>
 
 					<!-- TOGGLE TIL BESKYT/BESKYT IKKE ELEMENT -->
+					<?php if($user['role_access_level']==1000){?>
 					<td class="toggle">
-						<input type="checkbox" class="toggle-checkbox" name="my-checkbox" checked>
+						<input type="checkbox" class="toggle-checkbox" id="<?php echo $v['page_id']; ?>" data-type="page-protected" <?php echo $v['page_protected'] ? "checked" : ""; ?>>
 					</td>
+					<?php }?>
 
 					<!-- TOGGLE TIL AKTIVER/DEAKTIVER ELEMENT -->
+
 					<td class="toggle">
-						<input type="checkbox" class="toggle-checkbox" name="my-checkbox" disabled>
+						<?php if(!$v['page_protected'] || $user['role_access_level']==1000){?>
+						<input type="checkbox" class="toggle-checkbox" id="<?php echo $v['page_id']; ?>" data-type="page-status" <?php echo $v['page_status'] ? "checked" : ""; ?>>
+						<?php }?>
 					</td>
+
 
 					<!-- REDIGER LINK -->
+
 					<td class="icon">
-						<a class="<?php echo $buttons['edit'] ?>" href="index.php?page=page-edit&id=1" data-page="page-edit" data-params="id=1" title="<?php echo EDIT_ITEM ?>"><?php echo $icons['edit'] ?></a>
+						<a class="<?php echo $buttons['edit'] ?>" href="index.php?page=page-edit&id=<?php echo $v['page_id'];?>" data-page="page-edit" data-params="id=<?php echo $v['page_id'];?>" title="<?php echo EDIT_ITEM ?>"><?php echo $icons['edit'] ?></a>
 					</td>
+
 
 					<!-- SLET LINK -->
+					<?php if(!$v['page_protected'] || $user['role_access_level']==1000){?>
 					<td class="icon">
-						<a class="<?php echo $buttons['delete'] ?>" data-toggle="confirmation" href="index.php?page=pages&id=1&delete" data-page="pages" data-params="page-id=1&delete" title="<?php echo DELETE_ITEM ?>"><?php echo $icons['delete'] ?></a>
+						<a class="<?php echo $buttons['delete'] ?>" data-toggle="confirmation" href="index.php?page=<?php echo $view_file; ?>&id=<?php echo $v['page_id'];?>&delete" data-page="<?php echo $view_file; ?>" data-params="page-id=<?php echo $v['page_id'];?>&delete" title="<?php echo DELETE_ITEM ?>"><?php echo $icons['delete'] ?></a>
 					</td>
+					<?php }?>
 				</tr>
-
-				<tr>
-					<td>Forside</td>
-					<td><a href="../" target="_blank">/</a></td>
-
-					<!-- LINK TIL SIDEINDHOLD -->
-					<td class="icon">
-						<a href="index.php?page=page-content&page-id=2" title="<?php echo $view_files['page-content']['title'] ?>" data-page="page-content" data-params="page-id=2"><?php echo $view_files['page-content']['icon'] ?></a>
-					</td>
-
-					<!-- TOGGLE TIL BESKYT/BESKYT IKKE ELEMENT -->
-					<td class="toggle">
-						<input type="checkbox" class="toggle-checkbox" name="my-checkbox" checked>
-					</td>
-
-					<!-- TOGGLE TIL AKTIVER/DEAKTIVER ELEMENT -->
-					<td class="toggle">
-						<input type="checkbox" class="toggle-checkbox" name="my-checkbox" checked>
-					</td>
-
-					<!-- REDIGER LINK -->
-					<td class="icon">
-						<a class="<?php echo $buttons['edit'] ?>" href="index.php?page=page-edit&id=2" data-page="page-edit" data-params="id=2"  title="<?php echo EDIT_ITEM ?>"><?php echo $icons['edit'] ?></a>
-					</td>
-
-					<!-- SLET LINK -->
-					<td class="icon">
-						<a class="<?php echo $buttons['delete'] ?>" data-toggle="confirmation" href="index.php?page=pages&id=2&delete" data-page="pages" data-params="id=2&delete" title="<?php echo DELETE_ITEM ?>"><?php echo $icons['delete'] ?></a>
-					</td>
-				</tr>
+				<?php }?>
 				</tbody>
 			</table>
 		</div><!-- /.table-responsive -->
 
 		<div class="row">
 			<div class="col-md-3">
-				<?php echo sprintf(SHOWING_ITEMS_AMOUNT, 1, 10, 97) ?>
+				<?php echo sprintf(SHOWING_ITEMS_AMOUNT, ($items_current_total == 0 ? 0 : $offset+1) , $offset+$items_current_total, $items_total) ?>
 			</div>
 			<div class="col-md-9 text-right">
-				<ul class="pagination">
-					<li class="disabled"><a href=""><?php echo $icons['previous'] ?></a></li>
-					<li class="active"><span>1</span></li>
-					<li><a href="index.php?page=pages&page-no=2" data-page="pages" data-params="page-no=2">2</a></li>
-					<li><a href="index.php?page=pages&page-no=3" data-page="pages" data-params="page-no=3">3</a></li>
-					<li><a href="index.php?page=pages&page-no=4" data-page="pages" data-params="page-no=4">4</a></li>
-					<li><a href="index.php?page=pages&page-no=5" data-page="pages" data-params="page-no=5">5</a></li>
-					<li class="disabled">
-						<span>&hellip;</span>
-					</li>
-					<li><a href="index.php?page=pages&page-no=9" data-page="pages" data-params="page-no=9">9</a></li>
-					<li><a href="index.php?page=pages&page-no=2" data-page="pages" data-params="page-no=2"><?php echo $icons['next'] ?></a></li>
-				</ul>
+				<?php pagination($page_no,$items_total,$page_length,$view_file)?>
 			</div>
 		</div>
 	</div>

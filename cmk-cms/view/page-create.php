@@ -4,6 +4,10 @@ if ( !isset($view_files) )
 	require '../config.php';
 	$include_path = '../' . $include_path;
 }
+
+$title=$url=$robots=$desc="";
+
+
 ?>
 
 <div class="page-title">
@@ -24,12 +28,20 @@ if ( !isset($view_files) )
 
 	<div class="card-body">
 		<form method="post" data-page="page-create">
-			<div class="alert alert-success alert-dismissible" role="alert">
-				<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				<?php echo ITEM_CREATED ?> <a href="index.php?page=pages" data-page="pages"><?php echo RETURN_TO_OVERVIEW ?></a>
-			</div>
+			<?php
+			if(isset($_POST['save_item'])){
+				$result=$dataHandle->createPage($_POST);
+				if(!$result['success']){
+					$title=$result['data']['title'];
+					$url=$result['data']['url_key'];
+					$robots=$result['data']['meta_robots'];
+					$desc=$result['data']['meta_description'];
+				}else{
+					$Event->createEvent('create','af siden <a href="index.php?page=page-edit&id='.$result['data']['inserted_id'].'" data-page="page-edit" data-params="id='.$result['data']['inserted_id'].'">'.$result['data']['title'].'</a>',100,$user['user_id']);
+				}
+			}
 
-			<?php include $include_path . 'form-page.php' ?>
+			include $include_path . 'form-page.php' ?>
 		</form>
 	</div>
 </div>
