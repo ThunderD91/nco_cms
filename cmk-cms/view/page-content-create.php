@@ -4,6 +4,14 @@ if ( !isset($view_files) )
 	require '../config.php';
 	$include_path = '../' . $include_path;
 }
+
+$pagefunction = $layout = $desc = $content = "";
+
+$content_type=1;
+
+$page_id="";
+if(isset($_GET['page-id']))
+	$page_id=$_GET['page-id'];
 ?>
 
 <div class="page-title">
@@ -24,12 +32,22 @@ if ( !isset($view_files) )
 
 	<div class="card-body">
 		<form method="post" data-page="page-content-create">
-			<div class="alert alert-success alert-dismissible" role="alert">
-				<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				<?php echo ITEM_CREATED ?> <a href="index.php?page=page-content&page-id=1" data-page="page-content" data-params="page-id=1"><?php echo RETURN_TO_OVERVIEW ?></a>
-			</div>
 
-			<?php include $include_path . 'form-page-content.php' ?>
+			<?php
+			if(isset($_POST['save_item'])){
+				$result=$dataHandle->createPageContent($_POST,$page_id);
+				if(!$result['success']){
+					$pagefunction=$result['data']['page_function'];
+					$layout=$result['data']['layout'];
+					$desc=$result['data']['description'];
+					$content=$result['data']['content'];
+					$content_type=$result['data']['content_type'];
+				}else{
+					$Event->createEvent('create','af side indholdet <a href="index.php?page=page-content-edit&page-id='.$page_id.'&id='.$result['data']['inserted_id'].'" data-page="page-content-edit" data-params="page-id='.$page_id.'&id='.$result['data']['inserted_id'].'">'.$result['data']['description'].'</a>',100,$user['user_id']);
+				}
+			}
+
+			include $include_path . 'form-page-content.php' ?>
 		</form>
 	</div>
 </div>

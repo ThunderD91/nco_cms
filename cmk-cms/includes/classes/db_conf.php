@@ -61,8 +61,8 @@
                         $parameters[] 	= $v['type'] . " JOIN " . $v['table'] . " ON " . $v['cond'];
                     }
                 }
-                if(isset($obj['group'])) 		$parameters[] 	= "GROUP BY " . $obj['group'];
                 if(isset($obj['cond']))  $parameters[] = "WHERE " . $obj['cond'];
+                if(isset($obj['group'])) 		$parameters[] 	= "GROUP BY " . $obj['group'];
                 if(isset($obj['order']) && !$this->countrows) $parameters[] = "ORDER BY " . $obj['order'];
                 if(isset($obj['limit']) && !$this->countrows) $parameters[] = "LIMIT " . $obj['limit'];
 

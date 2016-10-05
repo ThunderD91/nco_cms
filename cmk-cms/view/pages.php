@@ -185,7 +185,7 @@
 
 					<!-- LINK TIL SIDEINDHOLD -->
 					<td class="icon">
-						<a href="index.php?page=page-content&page-id=<?php echo $v['page_id'];?>" title="<?php echo $view_files['page-content']['title'] ?>" data-page="page-content" data-params="id=<?php echo $v['page_id'];?>"><?php echo $view_files['page-content']['icon'] ?></a>
+						<a href="index.php?page=page-content&page-id=<?php echo $v['page_id'];?>" title="<?php echo $view_files['page-content']['title'] ?>" data-page="page-content" data-params="page-id=<?php echo $v['page_id'];?>"><?php echo $view_files['page-content']['icon'] ?></a>
 					</td>
 
 					<!-- TOGGLE TIL BESKYT/BESKYT IKKE ELEMENT -->
@@ -214,7 +214,7 @@
 					<!-- SLET LINK -->
 					<?php if(!$v['page_protected'] || $user['role_access_level']==1000){?>
 					<td class="icon">
-						<a class="<?php echo $buttons['delete'] ?>" data-toggle="confirmation" href="index.php?page=<?php echo $view_file; ?>&id=<?php echo $v['page_id'];?>&delete" data-page="<?php echo $view_file; ?>" data-params="page-id=<?php echo $v['page_id'];?>&delete" title="<?php echo DELETE_ITEM ?>"><?php echo $icons['delete'] ?></a>
+						<a class="<?php echo $buttons['delete'] ?>" data-toggle="confirmation" href="index.php?page=<?php echo $view_file; ?>&id=<?php echo $v['page_id'];?>&delete" data-page="<?php echo $view_file; ?>" data-params="id=<?php echo $v['page_id'];?>&delete" title="<?php echo DELETE_ITEM ?>"><?php echo $icons['delete'] ?></a>
 					</td>
 					<?php }?>
 				</tr>

@@ -61,6 +61,20 @@ $(function() {
 					section	: $(this).data('section'),
 					data	: data_array
 				};
+				//alert(JSON.stringify(data_object));
+
+				$.ajax({
+					type: "POST",
+					url: "includes/setOrder.php",
+					data: data_object,
+					success: function(data){
+						alert(data);
+						if(data==='0'){
+
+						}
+					}
+
+				});
 			}
 		});
 

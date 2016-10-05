@@ -29,7 +29,7 @@ $title=$url=$robots=$desc="";
 
 			<?php
 			$showForm=true;
-			$id="";
+			$id=false;
 			if(isset($_GET['id']) && !empty($_GET['id'])){
 				$id=intval($_GET['id']);
 				$getPage=$DB->find('pages',array('cond'=>"page_id=$id"));

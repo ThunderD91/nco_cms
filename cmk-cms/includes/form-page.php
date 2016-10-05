@@ -1,4 +1,10 @@
-
+<?php
+	$ar=[];
+	$ar[]='page_url_key=""';
+	if($id) $ar[]="page_id!=$id";
+	$requireUrl=$DB->find('pages',array('cond'=>join(' AND ',$ar)));
+	$req=count($requireUrl) > 0 ? 'required' : '';
+?>
 <div class="form-group">
 	<label for="title"><?php echo TITLE ?>:</label>
 	<input type="text" name="title" id="title" class="form-control" required maxlength="55" autofocus value="<?php echo $title;?>">
@@ -6,7 +12,7 @@
 
 <div class="form-group">
 	<label for="url_key"><?php echo URL_KEY ?>:</label>
-	<input type="text" name="url_key" id="url_key" class="form-control" required maxlength="50" pattern="([a-z0-9-.])+" title="<?php echo INVALID_URL_KEY ?>" value="<?php echo $url;?>">
+	<input type="text" name="url_key" id="url_key" class="form-control" <?php echo $req;?> maxlength="50" pattern="([a-z0-9-.])+" title="<?php echo INVALID_URL_KEY ?>" value="<?php echo $url;?>">
 </div>
 
 <?php

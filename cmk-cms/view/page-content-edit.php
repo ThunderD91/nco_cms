@@ -4,6 +4,12 @@ if ( !isset($view_files) )
 	require '../config.php';
 	$include_path = '../' . $include_path;
 }
+
+$content_type = $pagefunction = $layout = $desc = $content = "";
+
+$page_id="";
+if(isset($_GET['page-id']))
+	$page_id=$_GET['page-id'];
 ?>
 
 <div class="page-title">
@@ -24,12 +30,36 @@ if ( !isset($view_files) )
 
 	<div class="card-body">
 		<form method="post" data-page="page-content-edit">
-			<div class="alert alert-success alert-dismissible" role="alert">
-				<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				<?php echo ITEM_UPDATED ?> <a href="index.php?page=page-content&page-id=1" data-page="page-content" data-params="page-id=1"><?php echo RETURN_TO_OVERVIEW ?></a>
-			</div>
-
-			<?php include $include_path . 'form-page-content.php' ?>
+			<?php
+			$id=false;
+			if(isset($_GET['id']) && !empty($_GET['id'])){
+				$id=intval($_GET['id']);
+				$getPageContent=$DB->find('page_content',array('cond'=>"fk_page_id=$page_id AND page_content_id=$id"));
+				if(count($getPageContent)>0){
+					$pagefunction=$getPageContent[0]['fk_page_function_id'];
+					$layout=$getPageContent[0]['fk_page_layout_id'];
+					$desc=$getPageContent[0]['page_content_description'];
+					$content=$getPageContent[0]['page_content'];
+					$content_type=$getPageContent[0]['page_content_type'];
+				}else{
+					alert('warning',sprintf(NO_ITEM_FOUND, PAGE_CONTENT) . ' <a href="index.php?page=page-content&page-id='.$page_id.'" data-page="page-content" data-params="page-id='.$page_id.'">' . RETURN_TO_OVERVIEW . '</a>');
+				}
+			}else{
+				alert('warning',sprintf(NO_ITEM_SELECTED, PAGE_CONTENT) . ' <a href="index.php?page=page-content&page-id='.$page_id.'" data-page="page-content" data-params="page-id='.$page_id.'">' . RETURN_TO_OVERVIEW . '</a>');
+			}
+			if(isset($_POST['save_item'])){
+				$result=$dataHandle->editPageContent($_POST,$page_id);
+				$pagefunction=$result['data']['page_function'];
+				$layout=$result['data']['layout'];
+				$desc=$result['data']['description'];
+				$content=$result['data']['content'];
+				$content_type=$result['data']['content_type'];
+				if($result['success'])
+					$Event->createEvent('update','af side indholdet <a href="index.php?page=page-content-edit&page-id='.$page_id.'&id='.$id.'" data-page="page-content-edit" data-params="page-id='.$page_id.'&id='.$id.'">'.$desc.'</a>',100,$user['user_id']);
+			}
+			include $include_path . 'form-page-content.php';
+			?>
+			<input type="hidden" id="contentid" name="contentid" value="<?php echo $id;?>">
 		</form>
 	</div>
 </div>

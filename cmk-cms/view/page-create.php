@@ -7,7 +7,7 @@ if ( !isset($view_files) )
 
 $title=$url=$robots=$desc="";
 
-
+$id=false;
 ?>
 
 <div class="page-title">

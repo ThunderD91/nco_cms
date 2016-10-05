@@ -1,27 +1,31 @@
-<div class="alert alert-warning alert-dismissible" role="alert">
-	<button type="button" class="close" data-dismiss="alert" aria-label="Close">
-		<span aria-hidden="true">&times;</span>
-	</button>
-	<?php echo REQUIRED_FIELDS_EMPTY ?>
-</div>
+<?php
+
+$page_content_types=[
+	'1'=>EDITOR,
+	'2'=>PAGE_FUNCTION
+];
+$page_layouts=$DB->find('page_layouts');
+$page_functions=$DB->find('page_functions');
+?>
 
 <div class="form-group">
 	<label for="content_type"><?php echo TYPE ?>:</label>
 	<select class="form-control" name="content_type" id="content_type">
-		<option value="1" selected><?php echo EDITOR ?></option>
-		<option value="2"><?php echo PAGE_FUNCTION ?></option>
+		<?php foreach($page_content_types as $k=>$v){
+			echo '<option value="'.$k.'" '.($content_type==$k ? "selected" : "").'>'.$v.'</option>';
+		}?>
 	</select>
 </div>
 
-<div id="1">
+<div id="1" <?php echo $content_type == "1" ? "" : 'style="display: none"'?>>
 	<div class="form-group">
 		<label for="description"><?php echo DESCRIPTION ?>:</label>
-		<input type="text" name="description" id="description" class="form-control" required maxlength="255" value="">
+		<input type="text" name="description" id="description" class="form-control" required maxlength="255" value="<?php echo $desc;?>">
 	</div>
 
 	<div class="form-group">
 		<label for="content"><?php echo CONTENT ?>:</label>
-		<textarea name="content" id="content"></textarea>
+		<textarea name="content" id="content"><?php echo $content;?></textarea>
 		<script>
 			CKEDITOR.replace('content', {
 				toolbar: 'Full'
@@ -30,23 +34,25 @@
 	</div>
 </div>
 
-<div class="form-group" id="2" style="display: none">
+<div class="form-group" id="2" <?php echo $content_type == "2" ? "" : 'style="display: none"'?>>
 	<label for="page_function"><?php echo PAGE_FUNCTION ?>:</label>
 	<select class="form-control" name="page_function" id="page_function">
-		<option value="1">Blog: Oversigt over indlæg</option>
-		<option value="2">Kontaktformular</option>
+		<?php
+			foreach($page_functions as $v){
+				echo '<option value="'.$v['page_function_id'].'" '.($pagefunction==$v['page_function_id'] ? "selected" : "").'>'.$v['page_function_description'].'</option>';
+			}
+		?>
 	</select>
 </div>
 
 <div class="form-group">
 	<label for="layout"><?php echo LAYOUT ?>:</label>
 	<select class="form-control" name="layout" id="layout">
-		<option value="1"><?php echo COLUMN ?>: 100%</option>
-		<option value="2"><?php echo COLUMN ?>: 75%</option>
-		<option value="3"><?php echo COLUMN ?>: 66%</option>
-		<option value="4"><?php echo COLUMN ?>: 50%</option>
-		<option value="5"><?php echo COLUMN ?>: 33%</option>
-		<option value="6"><?php echo COLUMN ?>: 25%</option>
+		<?php
+			foreach($page_layouts as $v){
+				echo '<option value="'.$v['page_layout_id'].'" '.($layout==$v['page_layout_id'] ? "selected" : "").'>'.COLUMN.' '.$v['page_layout_description'].'</option>';
+			}
+		?>
 	</select>
 </div>
 
