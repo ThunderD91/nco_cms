@@ -123,6 +123,60 @@ class DataHandler extends DB{
         }
         return $result;
     }
+    function createPost($post,$userid){
+        $result=array(
+            'data'=>$post,
+            'success'=>false
+        );
+        $url=$this->esc($post['url_key']);
+        $title=$this->esc($post['title']);
+        $content=$this->esc($post['content']);
+        $desc= empty($post['meta_description']) ? 'NULL' : "'".$this->esc($post['meta_description'])."'";
+        if(empty($url) || empty($title)) {
+            alert('warning',REQUIRED_FIELDS_EMPTY);
+        }else{
+            $this->find('posts', array('cond' => "post_url_key='$url'"));
+            if ($this->row_totals > 0) {
+                alert('warning', URL_NOT_AVAILABLE);
+            }else {
+                $insert = $this->execute("INSERT INTO posts (post_url_key,post_title,post_content,post_meta_description,fk_user_id) VALUES ('$url','$title','$content',$desc,$userid);", true);
+                if (count($this->find('posts', array('cond' => "post_id=$insert"))) > 0) {
+                    $result['data']['inserted_id'] = $insert;
+                    $result['success'] = true;
+                    alert('success', ITEM_CREATED . ' <a href="index.php?page=posts" data-page="posts">' . RETURN_TO_OVERVIEW . '</a>');
+                }
+            }
+        }
+        return $result;
+    }
+    function editPost($post){
+        $result=array(
+            'data'=>$post,
+            'success'=>false
+        );
+        $id=$this->esc($post['postid']);
+        $url=$this->esc($post['url_key']);
+        $title=$this->esc($post['title']);
+        $content=$this->esc($post['content']);
+        $desc= empty($post['meta_description']) ? 'NULL' : "'".$this->esc($post['meta_description'])."'";
+        if(empty($url) || empty($title)) {
+            alert('warning',REQUIRED_FIELDS_EMPTY);
+        }else{
+            $this->find('posts', array('cond' => "post_url_key='$url' AND post_id!=$id"));
+            if ($this->row_totals > 0) {
+                alert('warning', URL_NOT_AVAILABLE);
+            }else {
+                $this->execute("UPDATE posts SET post_url_key='$url',post_title='$title',post_content='$content',post_meta_description=$desc WHERE post_id=$id;");
+                if(!$this->last_err) {
+                    $result['success'] = true;
+                    alert('success', ITEM_UPDATED . ' <a href="index.php?page=posts" data-page="posts">' . RETURN_TO_OVERVIEW . '</a>');
+                }else{
+                    alert('warning', sprintf(UPDATE_FAILED, BLOG_POSTS) . ' <a href="index.php?page=posts" data-page="posts">' . RETURN_TO_OVERVIEW . '</a>');
+                }
+            }
+        }
+        return $result;
+    }
 
 }
 ?>

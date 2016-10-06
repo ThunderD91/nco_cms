@@ -37,25 +37,21 @@ if ( !isset($view_files) )
 				</thead>
 
 				<tbody>
+				<?php
+
+				$result=$DB->find('menus');
+
+				foreach($result as $v){?>
 				<tr>
-					<td>Main</td>
-					<td>Hovedmenu på hjemmesiden</td>
+					<td><?php echo $v['menu_name'];?></td>
+					<td><?php echo $v['menu_description'];?></td>
 
 					<!-- LINK TIL SIDEINDHOLD -->
 					<td class="icon">
-						<a href="index.php?page=menu-links&menu-id=1" title="<?php echo $view_files['menu-links']['title'] ?>" data-page="menu-links" data-params="menu-id=1"><?php echo $view_files['menu-links']['icon'] ?></a>
+						<a href="index.php?page=menu-links&menu-id=<?php echo $v['menu_id'];?>" title="<?php echo $view_files['menu-links']['title'] ?>" data-page="menu-links" data-params="menu-id=<?php echo $v['menu_id'];?>"><?php echo $view_files['menu-links']['icon'] ?></a>
 					</td>
 				</tr>
-
-				<tr>
-					<td>Footer</td>
-					<td>Menu i bunden af hjemmesiden</td>
-
-					<!-- LINK TIL SIDEINDHOLD -->
-					<td class="icon">
-						<a href="index.php?page=menu-links&menu-id=2" title="<?php echo $view_files['menu-links']['title'] ?>" data-page="menu-links" data-params="menu-id=2"><?php echo $view_files['menu-links']['icon'] ?></a>
-					</td>
-				</tr>
+				<?php }?>
 				</tbody>
 			</table>
 		</div><!-- /.table-responsive -->

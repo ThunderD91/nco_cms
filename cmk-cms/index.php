@@ -45,7 +45,12 @@ $view_title	= $view_files[$view_file]['title'] . ' - CMK Admin';
     <link rel="stylesheet" type="text/css" href="../assets/select2-4.0.3/css/select2.min.css">
     <!-- CSS App -->
     <link rel="stylesheet" type="text/css" href="css/style.css">
-    <link rel="stylesheet" type="text/css" href="css/themes/flat-blue.css">
+    <link rel="stylesheet" type="text/css" href="css/themes/flat-new.css">
+
+    <!--
+    <link id="base-style" href="css/style.css" rel="stylesheet">
+    <link id="base-style-responsive" href="css/style-responsive.css" rel="stylesheet">
+    -->
 
 	<!-- CKEditor -->
 	<script src="../assets/ckeditor-4.5.1/ckeditor.js"></script>

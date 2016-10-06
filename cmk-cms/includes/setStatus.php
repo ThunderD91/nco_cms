@@ -31,6 +31,11 @@
                 $protected=$db->find('pages',array('cond'=>"page_id=$id",'fields'=>'page_protected'));
                 $skip=($user['role_access_level']==1000 || (!$protected[0]['page_protected'] && $user['role_access_level']==100));
                 break;
+            case 'posts':
+                $status="post_status";
+                $field="post_id";
+                $skip=true;
+                break;
         }
         if($skip) {
             $db->execute("UPDATE $table SET $status=$state WHERE $field=$id;");

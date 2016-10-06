@@ -4,6 +4,7 @@ if ( !isset($view_files) )
 	require '../config.php';
 	$include_path = '../' . $include_path;
 }
+$title=$url_key=$content=$meta_description="";
 ?>
 
 <div class="page-title">
@@ -24,12 +25,37 @@ if ( !isset($view_files) )
 
 	<div class="card-body">
 		<form method="post" data-page="post-edit">
-			<div class="alert alert-success alert-dismissible" role="alert">
-				<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				<?php echo ITEM_UPDATED ?> <a href="index.php?page=posts" data-page="posts"><?php echo RETURN_TO_OVERVIEW ?></a>
-			</div>
+			<?php
+			$id=false;
+			if(isset($_GET['id']) && !empty($_GET['id'])){
+				$id=intval($_GET['id']);
+				$getPost=$DB->find('posts',array('cond'=>"post_id=$id"));
+				if(count($getPost)>0){
+					$title=$getPost[0]['post_title'];
+					$url_key=$getPost[0]['post_url_key'];
+					$content=$getPost[0]['post_content'];
+					$meta_description=$getPost[0]['post_meta_description'];
 
-			<?php include $include_path . 'form-post.php' ?>
+				}else{
+					alert('warning',sprintf(NO_ITEM_FOUND, PAGE) . ' <a href="index.php?page=posts" data-page="posts">' . RETURN_TO_OVERVIEW . '</a>');
+				}
+			}else{
+				alert('warning',sprintf(NO_ITEM_SELECTED, PAGE) . ' <a href="index.php?page=posts" data-page="posts">' . RETURN_TO_OVERVIEW . '</a>');
+			}
+			if(isset($_POST['save_item'])){
+				$result=$dataHandle->editPost($_POST,$user['user_id']);
+
+				$title=$result['data']['title'];
+				$url_key=$result['data']['url_key'];
+				$content=$result['data']['content'];
+				$meta_description=$result['data']['meta_description'];
+				if($result['success'])
+					$Event->createEvent('update','af post <a href="index.php?page=post-edit&id='.$id.'" data-page="post-edit" data-params="id='.$id.'">'.$title.'</a>',10,$user['user_id']);
+			}
+			include $include_path . 'form-post.php';
+			?>
+
+			<input type="hidden" id="postid" name="postid" value="<?php echo $id;?>">
 		</form>
 	</div>
 </div>

@@ -15,14 +15,6 @@
 	if(isset($_GET['sort-by'])) $_SESSION[$view_file.'conf']['sort_by']=$_GET['sort-by'];
 	if(isset($_GET['order'])) $_SESSION[$view_file.'conf']['order']=$DB->esc($_GET['order']);
 
-	if(isset($_GET['toggle']) && isset($_GET['id'])){
-		$cid=$DB->esc($_GET['id']);
-		if($cid != 1) {
-			$tog = $_GET['toggle'] ? 1 : 0;
-			$DB->execute("UPDATE users SET user_status=$tog WHERE user_id=$cid");
-		}
-	}
-
 	if(isset($_GET['search']) && !empty($_GET['search'])){
 		$_SESSION[$view_file.'conf']['search']=$DB->esc($_GET['search']);
 		unset($_SESSION[$view_file.'conf']['page_no']);
@@ -181,7 +173,7 @@
 				?>
 				<tr>
 					<td><?php echo $v['page_title'];?></td>
-					<td><a href="<?php echo $v['page_url_key'];?>" target="_blank"><?php echo $v['page_url_key'];?></a></td>
+					<td><a href="../<?php echo $v['page_url_key'];?>" target="_blank">/<?php echo $v['page_url_key'];?></a></td>
 
 					<!-- LINK TIL SIDEINDHOLD -->
 					<td class="icon">

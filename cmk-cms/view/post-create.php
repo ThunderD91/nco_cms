@@ -4,6 +4,8 @@ if ( !isset($view_files) )
 	require '../config.php';
 	$include_path = '../' . $include_path;
 }
+
+$title=$url_key=$content=$meta_description="";
 ?>
 
 <div class="page-title">
@@ -24,12 +26,20 @@ if ( !isset($view_files) )
 
 	<div class="card-body">
 		<form method="post" data-page="post-create">
-			<div class="alert alert-success alert-dismissible" role="alert">
-				<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				<?php echo ITEM_CREATED ?> <a href="index.php?page=posts" data-page="posts"><?php echo RETURN_TO_OVERVIEW ?></a>
-			</div>
 
-			<?php include $include_path . 'form-post.php' ?>
+			<?php
+			if(isset($_POST['save_item'])){
+				$result=$dataHandle->createPost($_POST,$user['user_id']);
+				if(!$result['success']){
+					$title=$result['data']['title'];
+					$url_key=$result['data']['url_key'];
+					$content=$result['data']['content'];
+					$meta_description=$result['data']['meta_description'];
+				}else{
+					$Event->createEvent('create','af post <a href="index.php?page=post-edit&id='.$result['data']['inserted_id'].'" data-page="post-edit" data-params="id='.$result['data']['inserted_id'].'">'.$result['data']['title'].'</a>',10,$user['user_id']);
+				}
+			}
+			include $include_path . 'form-post.php' ?>
 		</form>
 	</div>
 </div>

@@ -68,7 +68,7 @@ $(function() {
 					url: "includes/setOrder.php",
 					data: data_object,
 					success: function(data){
-						alert(data);
+						//alert(data);
 						if(data==='0'){
 
 						}

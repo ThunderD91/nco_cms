@@ -2,6 +2,92 @@
 if ( !isset($view_files) )
 {
 	require '../config.php';
+	$view_file='posts';
+}
+if(!isset($_SESSION[$view_file.'conf']))
+	$_SESSION[$view_file.'conf']=[];
+if(isset($_GET['page-length']) && $_GET['page-length'] >= min($show_pages_length) && $_GET['page-length'] <= max($show_pages_length)){
+	$_SESSION[$view_file.'conf']['page_length']=$DB->esc($_GET['page-length']);
+	unset($_SESSION[$view_file.'conf']['page_no']);
+}
+if(isset($_GET['page-no'])) $page_no =$_SESSION[$view_file.'conf']['page_no']=$_GET['page-no'];
+if(isset($_GET['sort-by'])) $_SESSION[$view_file.'conf']['sort_by']=$_GET['sort-by'];
+if(isset($_GET['order'])) $_SESSION[$view_file.'conf']['order']=$DB->esc($_GET['order']);
+
+if(isset($_GET['search']) && !empty($_GET['search'])){
+	$_SESSION[$view_file.'conf']['search']=$DB->esc($_GET['search']);
+	unset($_SESSION[$view_file.'conf']['page_no']);
+}
+if((isset($_GET['search']) && empty($_GET['search']) || (isset($_GET['clear']) && $_GET['clear']=="search"))) unset($_SESSION[$view_file.'conf']['search']);
+
+// Defaults
+$page_length = isset($_SESSION[$view_file.'conf']['page_length'])	? intval($_SESSION[$view_file.'conf']['page_length'])	: DEFAULT_PAGE_LENGTH;
+$page_no 	 = isset($_SESSION[$view_file.'conf']['page_no'])		? $_SESSION[$view_file.'conf']['page_no']	: 1;
+$sort_by	 = isset($_SESSION[$view_file.'conf']['sort_by'])		? $_SESSION[$view_file.'conf']['sort_by']	: 'created';
+$order 		 = isset($_SESSION[$view_file.'conf']['order'])		? $_SESSION[$view_file.'conf']['order']	: 'desc';
+$search 	 = isset($_SESSION[$view_file.'conf']['search'])		? $_SESSION[$view_file.'conf']['search']	: '';
+
+$icon_created		= $icon_title = $icon_link = $icon_user = $icon_status = '';
+
+if ($order  == 'desc')
+{
+	$new_order	= 'asc';
+	$icon		= $icons['sort-desc'];
+}
+else
+{
+	$new_order	= 'desc';
+	$icon		= $icons['sort-asc'];
+}
+
+switch($sort_by)
+{
+	case 'created':
+		$icon_created	= $icon;
+		$sorting="post_time ".$order;
+		break;
+	case 'title':
+		$icon_title		= $icon;
+		$sorting="post_title ".$order;
+		break;
+	case 'url':
+		$icon_link		= $icon;
+		$sorting="post_url_key ".$order;
+		break;
+	case 'user-name':
+		$icon_user	= $icon;
+		$sorting="user_name ".$order;
+		break;
+	case 'status':
+		$icon_status	= $icon;
+		$sorting="post_status ".$order;
+		break;
+}
+
+if(isset($_GET['delete']) && isset($_GET['id']) && !empty($_GET['id'])){
+	$delete_id=$_GET['id'];
+	if($delete_id!=1) {
+		if($delete_id != $user['user_id']) {
+			$resultDel = $DB->find('users', array('cond' => "user_id=$delete_id", 'fields' => 'user_name,role_access_level',
+				'join'=>array(
+					array('type'=>'INNER','table'=>'roles','cond'=>'fk_role_id=role_id')
+				)
+			));
+
+			if ($DB->row_totals > 0 && ($resultDel[0]['role_access_level']<$user['role_access_level']  || $user['role_access_level']==1000)) {
+				$query = "DELETE FROM users WHERE user_id=$delete_id";
+				$DB->execute($query);
+				if ($DB->last_err)
+					query_error($this->conn->error, $query, __LINE__, __FILE__);
+				else {
+					$Event->createEvent('delete', 'af brugeren <a href="index.php?page=user-edit&id=' . $delete_id . '" data-page="user-edit" data-params="id=' . $delete_id . '">' . $resultDel[0]['user_name'] . '</a>', 100, $user['user_id']);
+				}
+			}
+		}else{
+			alert('warning',CANT_DELETE_SELF);
+		}
+	}else
+		alert('warning',sprintf(CANT_DELETE_SUPER, SUPER_ADMINISTRATOR));
 }
 ?>
 
@@ -10,7 +96,7 @@ if ( !isset($view_files) )
 	<span class="title">
 		<?php
 		// Get icon and title from Array $files, defined in config.php
-		echo $view_files['posts']['icon'] . ' ' . $view_files['posts']['title']
+		echo $view_files[$view_file]['icon'] . ' ' . $view_files[$view_file]['title']
 		?>
 	</span>
 </div>
@@ -25,27 +111,30 @@ if ( !isset($view_files) )
 	<div class="card-body">
 		<div class="row">
 			<div class="col-md-4">
-				<form class="form-inline" data-page="posts">
-					<input type="hidden" name="page" value="posts">
+				<form class="form-inline" data-page="<?php echo $view_file;?>">
+					<input type="hidden" name="page" value="<?php echo $view_file;?>">
 					<label class="font-weight-300">
 						Vis
 						<select class="form-control input-sm" name="page-length" data-change="submit-form">
-							<option value="10">10</option>
-							<option value="25">25</option>
-							<option value="50">50</option>
-							<option value="100">100</option>
+							<?php foreach($show_pages_length as $k=>$v){?>
+								<option value="<?php echo $k?>" <?php echo $page_length == $k ? "selected" : "" ?>><?php echo $v?></option>
+							<?php }?>
 						</select>
 						elementer
 					</label>
 				</form>
 			</div>
 			<div class="col-md-5 col-md-offset-3 text-right">
-				<form data-page="posts">
-					<input type="hidden" name="page" value="posts">
+				<form data-page="<?php echo $view_file;?>">
+					<input type="hidden" name="page" value="<?php echo $view_file;?>">
 					<div class="input-group input-group-sm">
-						<input type="search" name="search" id="search" class="form-control" placeholder="<?php echo PLACEHOLDER_SEARCH ?>" value="">
+						<input type="search" name="search" id="search" class="form-control" placeholder="<?php echo PLACEHOLDER_SEARCH ?>" value="<?php if($search) echo  $search;?>">
 						<span class="input-group-btn">
 							<button class="btn btn-default" type="submit"><?php echo $icons['search'] ?></button>
+						</span>
+						<span class="input-group-btn"></span>
+						<span class="input-group-btn">
+							<button class="btn btn-default" type="submit" name="clear" id="clear" value="search">Clear</button>
 						</span>
 					</div>
 				</form>
@@ -57,20 +146,20 @@ if ( !isset($view_files) )
 				<thead>
 				<tr>
 					<th>
-						<a href="index.php?page=posts&sort-by=created&order=asc" data-page="posts" data-params="sort-by=created&order=asc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icons['sort-desc'] . CREATED ?></a>
+						<a href="index.php?page=<?php echo $view_file;?>&sort-by=created&order=<?php echo $new_order;?>" data-page="<?php echo $view_file;?>" data-params="sort-by=created&order=asc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icon_created .  CREATED ?></a>
 					</th>
 					<th>
-						<a href="index.php?page=posts&sort-by=title&order=asc" data-page="posts" data-params="sort-by=title&order=asc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo TITLE ?></a>
+						<a href="index.php?page=<?php echo $view_file;?>&sort-by=title&order=<?php echo $new_order;?>" data-page="<?php echo $view_file;?>" data-params="sort-by=title&order=asc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icon_title .  TITLE ?></a>
 					</th>
 					<th>
-						<a href="index.php?page=posts&sort-by=url&order=asc" data-page="posts" data-params="sort-by=address&order=asc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo URL ?></a>
+						<a href="index.php?page=<?php echo $view_file;?>&sort-by=url&order=<?php echo $new_order;?>" data-page="<?php echo $view_file;?>" data-params="sort-by=address&order=asc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icon_link .  URL ?></a>
 					</th>
 					<th>
-						<a href="index.php?page=posts&sort-by=user-name&order=asc" data-page="posts" data-params="sort-by=user-name&order=asc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo USER ?></a>
+						<a href="index.php?page=<?php echo $view_file;?>&sort-by=user-name&order=<?php echo $new_order;?>" data-page="<?php echo $view_file;?>" data-params="sort-by=user-name&order=asc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icon_user .  USER ?></a>
 					</th>
 					<th class="icon"></th>
 					<th class="toggle">
-						<a href="index.php?page=posts&sort-by=status&order=asc" data-page="posts" data-params="sort-by=status&order=asc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo STATUS ?></a>
+						<a href="index.php?page=<?php echo $view_file;?>&sort-by=status&order=<?php echo $new_order;?>" data-page="<?php echo $view_file;?>" data-params="sort-by=status&order=asc" title="<?php echo SORT_BY_THIS_COLUMN ?>"><?php echo $icon_status .  STATUS ?></a>
 					</th>
 					<th class="icon"></th>
 					<th class="icon"></th>
@@ -78,83 +167,61 @@ if ( !isset($view_files) )
 				</thead>
 
 				<tbody>
-				<tr>
-					<td>ons, 22. jul 2015 kl. 22:36</td>
-					<td>Eksempel på indlæg 1</td>
-					<td><a href="../blog/post/eksempel-paa-indlaeg-1" target="_blank">/blog/post/eksempel-paa-indlaeg-1</a></td>
+				<?php
+				$offset=$page_length*($page_no-1);
+				$sql_options=array(
+					'fields'=>'post_id,post_status,DATE_FORMAT(post_time,"'.$timeStamp.'") AS created,user_name,post_title,post_url_key',
+					'order'=> $sorting,
+					'limit'=> $page_length . " OFFSET " . $offset,
+					'join'=>array(
+						array('type'=>'INNER','table'=>'users','cond'=>'fk_user_id=user_id'))
+				);
+				if($search) $sql_options['cond'] = "(user_name like '%$search%' OR post_url_key like '%$search%' OR post_title like '%$search%')";
 
-					<td>Børge Mogensen</td>
+				$result=$DB->find('posts',$sql_options);
+
+				$items_total = $DB->row_totals;
+				$items_current_total = $DB->row_totals_second;
+				foreach($result as $v){
+				?>
+				<tr>
+					<td><?php echo $v['created']; ?></td>
+					<td><?php echo $v['post_title']; ?></td>
+					<td><a href="../<?php echo $v['post_url_key']; ?>" target="_blank">/<?php echo $v['post_url_key']; ?></a></td>
+
+					<td><?php echo $v['user_name']; ?></td>
 
 					<!-- LINK TIL KOMMENTARER -->
 					<td class="icon">
-						<a href="index.php?page=comments&post-id=1" title="<?php echo $view_files['comments']['title'] ?>" data-page="comments" data-params="post-id=1"><?php echo $view_files['comments']['icon'] ?></a>
+						<a href="index.php?page=comments&post-id=<?php echo $v['post_id']; ?>" title="<?php echo $view_files['comments']['title'] ?>" data-page="comments" data-params="post-id=<?php echo $v['post_id']; ?>"><?php echo $view_files['comments']['icon'] ?></a>
 					</td>
 
 					<!-- TOGGLE TIL AKTIVER/DEAKTIVER ELEMENT -->
 					<td class="toggle">
-						<input type="checkbox" class="toggle-checkbox" name="my-checkbox">
+						<input type="checkbox" class="toggle-checkbox" name="my-checkbox" id="<?php echo $v['post_id']; ?>" data-type="<?php echo $view_file; ?>" <?php echo $v['post_status'] ? "checked" : ""; ?>>
 					</td>
 
 					<!-- REDIGER LINK -->
 					<td class="icon">
-						<a class="<?php echo $buttons['edit'] ?>" href="index.php?page=post-edit&id=1" data-page="post-edit" data-params="id=1" title="<?php echo EDIT_ITEM ?>"><?php echo $icons['edit'] ?></a>
+						<a class="<?php echo $buttons['edit'] ?>" href="index.php?page=post-edit&id=<?php echo $v['post_id']; ?>" data-page="post-edit" data-params="id=<?php echo $v['post_id']; ?>" title="<?php echo EDIT_ITEM ?>"><?php echo $icons['edit'] ?></a>
 					</td>
 
 					<!-- SLET LINK -->
 					<td class="icon">
-						<a class="<?php echo $buttons['delete'] ?>" data-toggle="confirmation" href="index.php?page=posts&id=1&delete" data-page="posts" data-params="id=1&delete" title="<?php echo DELETE_ITEM ?>"><?php echo $icons['delete'] ?></a>
+						<a class="<?php echo $buttons['delete'] ?>" data-toggle="confirmation" href="index.php?page=<?php echo $view_file;?>&id=<?php echo $v['post_id']; ?>&delete" data-page="<?php echo $view_file;?>" data-params="id=<?php echo $v['post_id']; ?>&delete" title="<?php echo DELETE_ITEM ?>"><?php echo $icons['delete'] ?></a>
 					</td>
 				</tr>
-
-				<tr>
-					<td>lør, 11. jul 2015 kl. 17:56</td>
-					<td>Eksempel på indlæg 2</td>
-					<td><a href="../blog/post/eksempel-paa-indlaeg-2" target="_blank">/blog/post/eksempel-paa-indlaeg-2</a></td>
-
-					<td>Børge Mogensen</td>
-
-					<!-- LINK TIL KOMMENTARER -->
-					<td class="icon">
-						<a href="index.php?page=comments&post-id=2" title="<?php echo $view_files['comments']['title'] ?>" data-page="comments" data-params="post-id=2"><?php echo $view_files['comments']['icon'] ?></a>
-					</td>
-
-					<!-- TOGGLE TIL AKTIVER/DEAKTIVER ELEMENT -->
-					<td class="toggle">
-						<input type="checkbox" class="toggle-checkbox" name="my-checkbox" checked>
-					</td>
-
-					<!-- REDIGER LINK -->
-					<td class="icon">
-						<a class="<?php echo $buttons['edit'] ?>" href="index.php?page=post-edit&id=2" data-page="post-edit" data-params="id=2"  title="<?php echo EDIT_ITEM ?>"><?php echo $icons['edit'] ?></a>
-					</td>
-
-					<!-- SLET LINK -->
-					<td class="icon">
-						<a class="<?php echo $buttons['delete'] ?>" data-toggle="confirmation" href="index.php?page=posts&id=2&delete" data-page="posts" data-params="id=2&delete" title="<?php echo DELETE_ITEM ?>"><?php echo $icons['delete'] ?></a>
-					</td>
-				</tr>
+				<?php }?>
 				</tbody>
 			</table>
 		</div><!-- /.table-responsive -->
 
 		<div class="row">
 			<div class="col-md-3">
-				<?php echo sprintf(SHOWING_ITEMS_AMOUNT, 1, 10, 97) ?>
+				<?php echo sprintf(SHOWING_ITEMS_AMOUNT, ($items_current_total == 0 ? 0 : $offset+1) , $offset+$items_current_total, $items_total) ?>
 			</div>
 			<div class="col-md-9 text-right">
-				<ul class="pagination">
-					<li class="disabled"><a href=""><?php echo $icons['previous'] ?></a></li>
-					<li class="active"><span>1</span></li>
-					<li><a href="index.php?page=posts&page-no=2" data-page="posts" data-params="page-no=2">2</a></li>
-					<li><a href="index.php?page=posts&page-no=3" data-page="posts" data-params="page-no=3">3</a></li>
-					<li><a href="index.php?page=posts&page-no=4" data-page="posts" data-params="page-no=4">4</a></li>
-					<li><a href="index.php?page=posts&page-no=5" data-page="posts" data-params="page-no=5">5</a></li>
-					<li class="disabled">
-						<span>&hellip;</span>
-					</li>
-					<li><a href="index.php?page=posts&page-no=9" data-page="posts" data-params="page-no=9">9</a></li>
-					<li><a href="index.php?page=posts&page-no=2" data-page="posts" data-params="page-no=2"><?php echo $icons['next'] ?></a></li>
-				</ul>
+				<?php pagination($page_no,$items_total,$page_length,$view_file)?>
 			</div>
 		</div>
 	</div>
