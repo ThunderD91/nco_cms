@@ -79,7 +79,7 @@ if(isset($_GET['delete']) && isset($_GET['id']) && !empty($_GET['id'])){
 				$query = "DELETE FROM users WHERE user_id=$delete_id";
 				$DB->execute($query);
 				if ($DB->last_err)
-					query_error($this->conn->error, $query, __LINE__, __FILE__);
+					query_error($DB->last_err, $query, __LINE__, __FILE__);
 				else {
 					$Event->createEvent('delete', 'af brugeren <a href="index.php?page=user-edit&id=' . $delete_id . '" data-page="user-edit" data-params="id=' . $delete_id . '">' . $resultDel[0]['user_name'] . '</a>', 100, $user['user_id']);
 				}

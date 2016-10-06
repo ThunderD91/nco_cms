@@ -14,6 +14,13 @@
                 $section_field="fk_page_id";
                 $skip=true;
                 break;
+            case 'menu-links':
+                $table="menu_links";
+                $order="menu_link_order";
+                $field="menu_link_id";
+                $section_field="fk_menu_id";
+                $skip=true;
+                break;
         }
         if($skip) {
             $count=1;

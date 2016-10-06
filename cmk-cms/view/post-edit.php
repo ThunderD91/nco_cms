@@ -37,10 +37,10 @@ $title=$url_key=$content=$meta_description="";
 					$meta_description=$getPost[0]['post_meta_description'];
 
 				}else{
-					alert('warning',sprintf(NO_ITEM_FOUND, PAGE) . ' <a href="index.php?page=posts" data-page="posts">' . RETURN_TO_OVERVIEW . '</a>');
+					alert('warning',sprintf(NO_ITEM_FOUND, BLOG_POSTS) . ' <a href="index.php?page=posts" data-page="posts">' . RETURN_TO_OVERVIEW . '</a>');
 				}
 			}else{
-				alert('warning',sprintf(NO_ITEM_SELECTED, PAGE) . ' <a href="index.php?page=posts" data-page="posts">' . RETURN_TO_OVERVIEW . '</a>');
+				alert('warning',sprintf(NO_ITEM_SELECTED, BLOG_POSTS) . ' <a href="index.php?page=posts" data-page="posts">' . RETURN_TO_OVERVIEW . '</a>');
 			}
 			if(isset($_POST['save_item'])){
 				$result=$dataHandle->editPost($_POST,$user['user_id']);

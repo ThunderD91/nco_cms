@@ -71,7 +71,7 @@
 				$query = "DELETE FROM pages WHERE page_id=$delete_id";
 				$DB->execute($query);
 				if ($DB->last_err)
-					query_error($this->conn->error, $query, __LINE__, __FILE__);
+					query_error($DB->last_err, $query, __LINE__, __FILE__);
 				else {
 					$Event->createEvent('delete', 'af side ' . $resultDel[0]['page_title'], 100, $user['user_id']);
 				}

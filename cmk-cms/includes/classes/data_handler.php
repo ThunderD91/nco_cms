@@ -177,6 +177,55 @@ class DataHandler extends DB{
         }
         return $result;
     }
+    function createMenuLink($post,$menuid){
+        $result=array(
+            'data'=>$post,
+            'success'=>false
+        );
+        $name=$this->esc($post['name']);
+        $link_type=$this->esc($post['link_type']);
+        $page= $this->esc($post['page']);
+        $ipost= empty($post['post']) ? 'NULL' : "'".$this->esc($post['post'])."'";
 
+        if(empty($name) || empty($link_type) || empty($page) || (empty($ipost) && $ipost!='NULL')) {
+            alert('warning',REQUIRED_FIELDS_EMPTY);
+        }else{
+            $count=$this->find('menu_links',array('fields'=>'count(menu_link_id) as new_order','cond'=>"fk_menu_id=$menuid"));
+            $newCount= count($count) > 0 ? intval($count[0]['new_order'])+1: 1;
+            $insert = $this->execute("INSERT INTO menu_links (menu_link_order,menu_link_name,menu_link_type,fk_page_id,fk_post_id,fk_menu_id) VALUES ($newCount,'$name',$link_type,$page,$ipost,$menuid);", true);
+            if (count($this->find('menu_links', array('cond' => "menu_link_id=$insert"))) > 0) {
+                $result['data']['inserted_id'] = $insert;
+                $result['success'] = true;
+                alert('success', ITEM_CREATED . ' <a href="index.php?page=menu-links&menu-id='.$menuid.'" data-page="menu-links" data-params="menu-id='.$menuid.'">' . RETURN_TO_OVERVIEW . '</a>');
+            }
+        }
+        return $result;
+    }
+    function editMenuLink($post,$menuid){
+        $result=array(
+            'data'=>$post,
+            'success'=>false
+        );
+        $id=$this->esc($post['menulinkid']);
+
+        $name=$this->esc($post['name']);
+        $link_type=$this->esc($post['link_type']);
+        $page= $this->esc($post['page']);
+        $ipost= empty($post['post']) ? 'NULL' : "'".$this->esc($post['post'])."'";
+
+        if(empty($name) || empty($link_type) || empty($page) || (empty($ipost) && $ipost!='NULL')) {
+            alert('warning',REQUIRED_FIELDS_EMPTY);
+        }else{
+            $this->execute("UPDATE menu_links SET menu_link_name='$name',menu_link_type=$link_type,fk_page_id=$page,fk_post_id=$ipost,fk_menu_id=$menuid WHERE menu_link_id=$id;");
+            if(!$this->last_err) {
+                $result['success'] = true;
+                alert('success', ITEM_UPDATED . ' <a href="index.php?page=menu-links&menu-id='.$menuid.'" data-page="menu-links" data-params="menu-id='.$menuid.'">' . RETURN_TO_OVERVIEW . '</a>');
+            }else{
+                alert('warning', sprintf(UPDATE_FAILED, MENU_LINKS) . ' <a href="index.php?page=menu-links&menu-id='.$menuid.'" data-page="menu-links" data-params="menu-id='.$menuid.'">' . RETURN_TO_OVERVIEW . '</a>');
+            }
+
+        }
+        return $result;
+    }
 }
 ?>

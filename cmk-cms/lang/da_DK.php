@@ -11,6 +11,7 @@ define('PAGE_FUNCTIONS',		'Funktionssider');
 define('EDITOR',				'Tekst editor');
 define('PAGE_FUNCTION',			'Funktionsside');
 define('MENUS',					'Menuer');
+define('MENU_LINKS',			'Menu-links');
 define('BLOG_POSTS',			'Blog-indlæg');
 define('COMMENTS',				'Kommentarer');
 define('OVERVIEW_TABLE_HEADER',	'Oversigt over oprettede elementer');

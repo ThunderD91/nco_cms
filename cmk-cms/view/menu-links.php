@@ -12,15 +12,17 @@ $menu_id="";
 if(isset($_GET['menu-id'])) {
 	$menu_id = $_GET['menu-id'];
 	if(isset($_GET['id']) && isset($_GET['delete'])){
-		$pgid=$DB->esc($menu_id);
 		$delid=$DB->esc($_GET['id']);
 		$resultDel = $DB->find('menu_links',array('cond'=>"menu_link_id=$delid"));
-		$query = "DELETE FROM menu_links WHERE menu_link_id=$delid";
-		$DB->execute($query);
-		if ($DB->last_err)
-			query_error($this->conn->error, $query, __LINE__, __FILE__);
-		else {
-			$Event->createEvent('delete', 'af menu linket ' . $resultDel[0]['menu_link_name'], 100, $user['user_id']);
+		if(count($resultDel) > 0) {
+			updateOrdering('menu_link_id','menu_links','menu_link_order',$resultDel[0]['menu_link_order'],'fk_menu_id',$menu_id);
+			$query = "DELETE FROM menu_links WHERE menu_link_id=$delid";
+			$DB->execute($query);
+			if ($DB->last_err)
+				query_error($DB->last_err, $query, __LINE__, __FILE__);
+			else {
+				$Event->createEvent('delete', 'af menu linket ' . $resultDel[0]['menu_link_name'], 100, $user['user_id']);
+			}
 		}
 	}
 }
@@ -61,7 +63,7 @@ if(isset($_GET['menu-id'])) {
 				<tbody id="sortable" data-type="menu-links" data-section="<?php echo $menu_id?>">
 				<?php
 					$sql_options=array(
-						'fields'=>'menu_link_id,menu_link_type,menu_link_order,menu_link_name,page_url_key',
+						'fields'=>'menu_link_id,menu_link_type,menu_link_order,menu_link_name,page_url_key,post_url_key',
 						'order'=> "menu_link_order asc",
 						'join'=>array(
 							array('type'=>'LEFT','table'=>'pages','cond'=>'fk_page_id=page_id'),
@@ -75,11 +77,11 @@ if(isset($_GET['menu-id'])) {
 
 					foreach($result as $v){ ?>
 				<tr class="sortable-item" id="<?php echo $v['menu_link_id']; ?>">
-					<td class="icon">1</td>
+					<td class="icon"><?php echo $v['menu_link_order']; ?></td>
 					<td class="icon"><?php echo $icons['sort'] ?></td>
 					<td><?php echo $menu_link_types[$v['menu_link_type']]; ?></td>
 					<td><?php echo $v['menu_link_name']; ?></td>
-					<td><a href="../<?php echo $v['page_url_key']; ?>" target="_blank">/</a></td>
+					<td><a href="../<?php echo $v['page_url_key']; ?>" target="_blank">/<?php echo $v['page_url_key'] . ($v['menu_link_type'] == 2 && isset($v['post_url_key']) ? "/".$v['post_url_key']:""); ?></a></td>
 
 					<!-- REDIGER LINK -->
 					<td class="icon">

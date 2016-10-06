@@ -10,6 +10,15 @@ function show_developer_info()
 	<pre class="prettyprint">COOKIE <?php print_r($_COOKIE) ?></pre>
 	<?php
 }
+function updateOrdering($id_type,$page,$type,$order,$fk_page_id,$page_id){
+	global $DB;
+	$result=$DB->find($page,array('cond'=>"$type>$order AND $fk_page_id=$page_id"));
+	if(count($result)>0){
+		foreach($result as $v){
+			$DB->execute("UPDATE $page SET $type=".($v[$type]-1)." WHERE $id_type=".$v[$id_type]);
+		}
+	}
+}
 function fingerPrint(){
 	return hash('sha256',$_SERVER['HTTP_USER_AGENT'] . 'aUb-eÆaÅ!dr0%9@ø');
 }

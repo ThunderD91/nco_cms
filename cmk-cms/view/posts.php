@@ -66,28 +66,16 @@ switch($sort_by)
 
 if(isset($_GET['delete']) && isset($_GET['id']) && !empty($_GET['id'])){
 	$delete_id=$_GET['id'];
-	if($delete_id!=1) {
-		if($delete_id != $user['user_id']) {
-			$resultDel = $DB->find('users', array('cond' => "user_id=$delete_id", 'fields' => 'user_name,role_access_level',
-				'join'=>array(
-					array('type'=>'INNER','table'=>'roles','cond'=>'fk_role_id=role_id')
-				)
-			));
-
-			if ($DB->row_totals > 0 && ($resultDel[0]['role_access_level']<$user['role_access_level']  || $user['role_access_level']==1000)) {
-				$query = "DELETE FROM users WHERE user_id=$delete_id";
-				$DB->execute($query);
-				if ($DB->last_err)
-					query_error($this->conn->error, $query, __LINE__, __FILE__);
-				else {
-					$Event->createEvent('delete', 'af brugeren <a href="index.php?page=user-edit&id=' . $delete_id . '" data-page="user-edit" data-params="id=' . $delete_id . '">' . $resultDel[0]['user_name'] . '</a>', 100, $user['user_id']);
-				}
-			}
-		}else{
-			alert('warning',CANT_DELETE_SELF);
+	$resultDel = $DB->find('posts',array('cond'=>"post_id=$delete_id"));
+	if ($DB->row_totals > 0) {
+		$query = "DELETE FROM posts WHERE post_id=$delete_id";
+		$DB->execute($query);
+		if ($DB->last_err)
+			query_error($DB->last_err, $query, __LINE__, __FILE__);
+		else {
+			$Event->createEvent('delete', 'af post ' . $resultDel[0]['post_title'], 10, $user['user_id']);
 		}
-	}else
-		alert('warning',sprintf(CANT_DELETE_SUPER, SUPER_ADMINISTRATOR));
+	}
 }
 ?>
 

@@ -16,10 +16,11 @@ if(isset($_GET['page-id'])) {
 		$pgid=$DB->esc($page_id);
 		$delid=$DB->esc($_GET['id']);
 		$resultDel = $DB->find('page_content',array('cond'=>"fk_page_id=$pgid AND page_content_id=$delid"));
+		updateOrdering('page_content_id','page_content','page_content_order',$resultDel[0]['page_content_order'],'fk_page_id',$page_id);
 		$query = "DELETE FROM page_content WHERE fk_page_id=$pgid AND page_content_id=$delid";
 		$DB->execute($query);
 		if ($DB->last_err)
-			query_error($this->conn->error, $query, __LINE__, __FILE__);
+			query_error($DB->last_err, $query, __LINE__, __FILE__);
 		else {
 			$Event->createEvent('delete', 'af side indholdet ' . $resultDel[0]['page_content_description'], 100, $user['user_id']);
 		}
