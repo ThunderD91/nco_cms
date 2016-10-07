@@ -13,6 +13,7 @@ define('PAGE_FUNCTION',			'Funktionsside');
 define('MENUS',					'Menuer');
 define('MENU_LINKS',			'Menu-links');
 define('BLOG_POSTS',			'Blog-indlæg');
+define('COMMENT',				'Kommentar');
 define('COMMENTS',				'Kommentarer');
 define('OVERVIEW_TABLE_HEADER',	'Oversigt over oprettede elementer');
 define('CREATED',				'Oprettet');

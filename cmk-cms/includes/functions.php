@@ -93,7 +93,7 @@ function alert($type,$msg){
  * @param $page_length, længde af hver side
  * @param $overall_range, range fra og til på actuelle side, standard er 2
  */
-function pagination($page_no,$items_total,$page_length,$page,$overall_range=2){
+function pagination($page_no,$items_total,$page_length,$page,$extra_param=false,$overall_range=2){
 		global $icons;
 		echo '<ul class="pagination">';
 		$pages_total=ceil($items_total/$page_length);
@@ -102,7 +102,7 @@ function pagination($page_no,$items_total,$page_length,$page,$overall_range=2){
 			if($page_no==1 && $floor>0){
 				echo '<li class="disabled"><span>'.$icons['previous'].'</span></li>';
 			}else if($pages_total>0){
-				echo '<li><a href="index.php?page='.$page.'&page-no='.intval($page_no-1).'" data-page="'.$page.'" data-params="page-no='.intval($page_no-1).'">'.$icons['previous'].'</a></li>';
+				echo '<li><a href="index.php?page='.$page.($extra_param ? '&'.$extra_param : "").'&page-no='.intval($page_no-1).'" data-page="'.$page.'" data-params="'.($extra_param ? $extra_param."&" : "").'page-no='.intval($page_no-1).'">'.$icons['previous'].'</a></li>';
 			}
 			$range=$overall_range;
 			$rest=0;
@@ -133,24 +133,24 @@ function pagination($page_no,$items_total,$page_length,$page,$overall_range=2){
 			$start=$start>0 ? $start : 1;
 
 			if($start != 1) {
-				echo '<li '.($page_no==1 ? 'class="active"' : "").'><a href="index.php?page='.$page.'&page-no=1" data-page="'.$page.'" data-params="page-no=1">1</a></li>';
+				echo '<li '.($page_no==1 ? 'class="active"' : "").'><a href="index.php?page='.$page.($extra_param ? '&'.$extra_param : "").'&page-no=1" data-page="'.$page.'" data-params="'.($extra_param ? $extra_param."&" : "").'page-no=1">1</a></li>';
 				if($page_no - $overall_range >2)
 					echo '<li class="disabled"><span>&hellip;</span></li>';
 			}
 
 			for($i=$start;$i<=$end;$i++){
-				echo '<li '.($page_no==$i ? 'class="active"' : "").'><a href="index.php?page='.$page.'&page-no='.$i.'" data-page="'.$page.'" data-params="page-no='.$i.'">'.$i.'</a></li>';
+				echo '<li '.($page_no==$i ? 'class="active"' : "").'><a href="index.php?page='.$page.($extra_param ? '&'.$extra_param : "").'&page-no='.$i.'" data-page="'.$page.'" data-params="'.($extra_param ? $extra_param."&" : "").'page-no='.$i.'">'.$i.'</a></li>';
 			}
 
 			if($end != $pages_total) {
 				if($page_no + $overall_range <$pages_total-1)
 					echo '<li class="disabled"><span>&hellip;</span></li>';
-				echo '<li '.($page_no==$pages_total ? 'class="active"' : "").'><a href="index.php?page='.$page.'&page-no='.$pages_total.'" data-page="'.$page.'" data-params="page-no='.$pages_total.'">'.$pages_total.'</a></li>';
+				echo '<li '.($page_no==$pages_total ? 'class="active"' : "").'><a href="index.php?page='.$page.($extra_param ? '&'.$extra_param : "").'&page-no='.$pages_total.'" data-page="'.$page.'" data-params="'.($extra_param ? $extra_param."&" : "").'page-no='.$pages_total.'">'.$pages_total.'</a></li>';
 			}
 			if($page_no==$pages_total){
 				echo '<li class="disabled"><span>'.$icons['next'].'</span></li>';
 			}else if($floor>0){
-				echo '<li><a href="index.php?page='.$page.'&page-no='.intval($page_no+1).'" data-page="'.$page.'" data-params="page-no='.intval($page_no+1).'">'.$icons['next'].'</a></li>';
+				echo '<li><a href="index.php?page='.$page.($extra_param ? '&'.$extra_param : "").'&page-no='.intval($page_no+1).'" data-page="'.$page.'" data-params="'.($extra_param ? $extra_param."&" : "").'page-no='.intval($page_no+1).'">'.$icons['next'].'</a></li>';
 			}
 		}
 		echo '</ul>';

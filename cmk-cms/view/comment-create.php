@@ -4,6 +4,11 @@ if ( !isset($view_files) )
 	require '../config.php';
 	$include_path = '../' . $include_path;
 }
+$content = "";
+
+$post_id="";
+if(isset($_GET['post-id']))
+	$post_id=$_GET['post-id'];
 ?>
 
 <div class="page-title">
@@ -24,12 +29,16 @@ if ( !isset($view_files) )
 
 	<div class="card-body">
 		<form method="post" data-page="comment-create">
-			<div class="alert alert-success alert-dismissible" role="alert">
-				<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-				<?php echo ITEM_CREATED ?> <a href="index.php?page=comments&post-id=1" data-page="comments" data-params="post-id=1"><?php echo RETURN_TO_OVERVIEW ?></a>
-			</div>
-
-			<?php include $include_path . 'form-comment.php' ?>
+			<?php
+			if(isset($_POST['save_item'])){
+				$result=$dataHandle->createPostComment($_POST,$post_id,$user['user_id']);
+				if(!$result['success']){
+					$content=$result['data']['content'];
+				}else{
+					$Event->createEvent('create','af <a href="index.php?page=comment-edit&post-id='.$post_id.'&id='.$result['data']['inserted_id'].'" data-page="comment-edit" data-params="post-id='.$post_id.'&id='.$result['data']['inserted_id'].'">'.COMMENT.'</a>',10,$user['user_id']);
+				}
+			}
+			include $include_path . 'form-comment.php' ?>
 		</form>
 	</div>
 </div>

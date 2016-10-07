@@ -227,5 +227,50 @@ class DataHandler extends DB{
         }
         return $result;
     }
+    function createPostComment($post,$post_id,$user_id){
+
+        $result=array(
+            'data'=>$post,
+            'success'=>false
+        );
+        $content=$this->esc($post['content']);
+
+        if(empty($content)) {
+            alert('warning',REQUIRED_FIELDS_EMPTY);
+        }else{
+            $insert = $this->execute("INSERT INTO post_comments (comment_content,fk_post_id,fk_user_id) VALUES ('$content',$post_id,$user_id);", true);
+
+            if (count($this->find('post_comments', array('cond' => "comment_id=$insert"))) > 0) {
+                $result['data']['inserted_id'] = $insert;
+                $result['success'] = true;
+                alert('success', ITEM_CREATED . ' <a href="index.php?page=comments&post-id='.$post_id.'" data-page="comments" data-params="post-id='.$post_id.'">' . RETURN_TO_OVERVIEW . '</a>');
+            }
+
+        }
+        return $result;
+    }
+    function editPostComment($post,$post_id){
+        $result=array(
+            'data'=>$post,
+            'success'=>false
+        );
+        $id=$this->esc($post['commentid']);
+
+        $content=$this->esc($post['content']);
+
+        if(empty($content)) {
+            alert('warning',REQUIRED_FIELDS_EMPTY);
+        }else{
+            $this->execute("UPDATE post_comments SET comment_content='$content' WHERE fk_post_id=$post_id AND comment_id=$id;");
+            if(!$this->last_err) {
+                $result['success'] = true;
+                alert('success', ITEM_UPDATED . ' <a href="index.php?page=comments&post-id='.$post_id.'" data-page="comments" data-params="post-id='.$post_id.'">' . RETURN_TO_OVERVIEW . '</a>');
+            }else{
+                alert('warning', sprintf(UPDATE_FAILED, COMMENT) . ' <a href="index.php?page=comments&post-id='.$post_id.'" data-page="comments" data-params="post-id='.$post_id.'">' . RETURN_TO_OVERVIEW . '</a>');
+            }
+
+        }
+        return $result;
+    }
 }
 ?>
